@@ -108,19 +108,34 @@ struct UniformBufferObject {
 };
 
 const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-    {{0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-    {{0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    {{-0.5f, 1.9f}, {1.0f, 1.0f, 1.0f}},
+    {{0.5f, 1.9f}, {1.0f, 1.0f, 1.0f}},
+    {{0.5f, 2.1f}, {1.0f, 1.0f, 1.0f}},
+    {{-0.5f, 2.1f}, {1.0f, 1.0f, 1.0f}},
+
+    {{-1.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{-1.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{-1.0f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{-1.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}
 };
 
 const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0
+    0, 1, 2, 2, 3, 0,
+    4, 5, 6, 6, 7, 4
 };
 
 std::string findResourcePath(std::string pathP);
 
-class HelloTriangleApplication {
+float mouseXpos;
+float mouseYpos;
+
+int prevMouseButtonState = GLFW_RELEASE;
+
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+
+class App {
 public:
     void run() {
         initWindow();
@@ -185,10 +200,12 @@ private:
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+        glfwSetCursorPosCallback(window, cursorPositionCallback);
+        glfwSetMouseButtonCallback(window, mouseButtonCallback);
     }
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
 
@@ -987,8 +1004,8 @@ private:
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         UniformBufferObject ubo{};
-        ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.1f, 0.0f, 0.0f));
-        //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
@@ -1259,6 +1276,7 @@ private:
         return buffer;
     }
 
+
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
         std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
@@ -1267,7 +1285,7 @@ private:
 };
 
 int main() {
-    HelloTriangleApplication app;
+    App app;
 
     try {
         app.run();
@@ -1288,4 +1306,22 @@ std::string findResourcePath(std::string pathP)
     std::string strPath = grantParentPath.string();
     std::replace(strPath.begin(), strPath.end(), '\\', '/');
     return strPath + pathP;
+}
+
+void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
+    mouseXpos = xpos;
+    mouseYpos = ypos;
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        std::cout << 1 << ", " << mouseXpos << std::endl;
+        prevMouseButtonState = GLFW_PRESS;
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    {
+        prevMouseButtonState = GLFW_RELEASE;
+    }
 }
