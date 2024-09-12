@@ -124,19 +124,33 @@ struct UniformBufferObject
 };
 
 const std::vector<Vertex> vertices = {
-    {{2.0f, -0.75f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},     // Up left
-    {{3.25f, -0.75f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},    // Up right
-    {{3.25f, -0.25f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},    // Down right
+    {{2.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up left
+    {{3.25f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up right
+    {{3.25f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down right
     {{2.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down left
 
-    {{1.0f, -0.75f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    {{2.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-    {{2.0f, -0.75f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-    {{1.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}, };
+    {{0.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
+    {{1.25f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
+    {{1.25f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
+    {{0.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
+
+    {{-2.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
+    {{-0.75f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
+    {{-0.75f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
+    {{-2.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
+
+    {{-14.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
+    {{-12.75f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
+    {{-12.75f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
+    {{-14.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
+};
 
 const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4 };
+    4, 5, 6, 6, 7, 4,
+    8, 9, 10, 10, 11, 8,
+    12, 13, 14, 14, 16, 12
+};
 
 std::string findResourcePath(std::string pathP);
 
@@ -220,10 +234,10 @@ private:
 
     VkCommandPool commandPool;
 
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
-    VkSampler textureSampler;
+    VkImage textureImage, textureImageO;
+    VkDeviceMemory textureImageMemory, textureImageMemoryO;
+    VkImageView textureImageView, textureImageViewO;
+    VkSampler textureSampler, textureSamplerO;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -279,7 +293,8 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
-        createTextureImage();
+        createTextureImage("/Textures/explicit.png", textureImage, textureImageMemory);
+        createTextureImage("/Textures/zero.png", textureImageO, textureImageMemoryO);
         createTextureImageView();
         createTextureSampler();
         createVertexBuffer();
@@ -672,7 +687,14 @@ private:
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+        VkDescriptorSetLayoutBinding samplerLayoutBindingO{};
+        samplerLayoutBindingO.binding = 2;
+        samplerLayoutBindingO.descriptorCount = 1;
+        samplerLayoutBindingO.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBindingO.pImmutableSamplers = nullptr;
+        samplerLayoutBindingO.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, samplerLayoutBinding, samplerLayoutBindingO };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -840,11 +862,11 @@ private:
         }
     }
 
-    void createTextureImage()
+    void createTextureImage(const std::string& texturePath, VkImage& textureImage, VkDeviceMemory& textureImageMemory)
     {
         int texWidth, texHeight, texChannels;
 
-        std::string finalPath = findResourcePath("/Textures/buttonExp.png");
+        std::string finalPath = findResourcePath(texturePath);
 
         stbi_uc* pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -878,6 +900,7 @@ private:
     void createTextureImageView()
     {
         textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+        textureImageViewO = createImageView(textureImageO, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
     void createTextureSampler()
@@ -901,6 +924,10 @@ private:
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
         if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSamplerO) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create texture sampler!");
         }
@@ -1146,7 +1173,12 @@ private:
             imageInfo.imageView = textureImageView;
             imageInfo.sampler = textureSampler;
 
-            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            VkDescriptorImageInfo imageInfoO{};
+            imageInfoO.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfoO.imageView = textureImageViewO;
+            imageInfoO.sampler = textureSamplerO;
+
+            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = descriptorSets[i];
@@ -1163,6 +1195,14 @@ private:
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pImageInfo = &imageInfo;
+
+            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[2].dstSet = descriptorSets[i];
+            descriptorWrites[2].dstBinding = 2;
+            descriptorWrites[2].dstArrayElement = 0;
+            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[2].descriptorCount = 1;
+            descriptorWrites[2].pImageInfo = &imageInfoO;
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
