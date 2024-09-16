@@ -162,6 +162,14 @@ int prevMouseButtonState = GLFW_RELEASE;
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
+constexpr int textureToCreate = 2;
+
+std::array<std::string, textureToCreate> texturePaths;
+
+std::vector<VkImage> textureImages(textureToCreate);
+std::vector<VkDeviceMemory> textureImageMemories(textureToCreate);
+std::vector<VkImageView> textureImageViews;
+std::vector<VkSampler> textureSamplers(textureToCreate);
 
 class App
 {
@@ -234,11 +242,6 @@ private:
 
     VkCommandPool commandPool;
 
-    VkImage textureImage, textureImageO;
-    VkDeviceMemory textureImageMemory, textureImageMemoryO;
-    VkImageView textureImageView, textureImageViewO;
-    VkSampler textureSampler, textureSamplerO;
-
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
@@ -293,8 +296,11 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
-        createTextureImage("/Textures/explicit.png", textureImage, textureImageMemory);
-        createTextureImage("/Textures/zero.png", textureImageO, textureImageMemoryO);
+
+        for (int i = 0; i < textureToCreate; i++)
+        {
+            createTextureImage(texturePaths[i], textureImages[i], textureImageMemories[i]);
+        }
         createTextureImageView();
         createTextureSampler();
         createVertexBuffer();
@@ -348,11 +354,13 @@ private:
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 
-        vkDestroySampler(device, textureSampler, nullptr);
-        vkDestroyImageView(device, textureImageView, nullptr);
-
-        vkDestroyImage(device, textureImage, nullptr);
-        vkFreeMemory(device, textureImageMemory, nullptr);
+        for (int i = 0; i < textureToCreate; i++)
+        {
+            vkDestroyImage(device, textureImages[i], nullptr);
+            vkFreeMemory(device, textureImageMemories[i], nullptr);
+            vkDestroyImageView(device, textureImageViews[i], nullptr);
+            vkDestroySampler(device, textureSamplers[i], nullptr);
+        }
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
@@ -898,9 +906,10 @@ private:
     }
 
     void createTextureImageView()
-    {
-        textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
-        textureImageViewO = createImageView(textureImageO, VK_FORMAT_R8G8B8A8_SRGB);
+    {   
+
+        textureImageViews.push_back(createImageView(textureImages[0], VK_FORMAT_R8G8B8A8_SRGB));
+        textureImageViews.push_back(createImageView(textureImages[1], VK_FORMAT_R8G8B8A8_SRGB));
     }
 
     void createTextureSampler()
@@ -923,13 +932,12 @@ private:
         samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+        for (int i = 0; i < textureToCreate; i++)
         {
-            throw std::runtime_error("failed to create texture sampler!");
-        }
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSamplerO) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create texture sampler!");
+            if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSamplers[i]) != VK_SUCCESS)
+            {
+                throw std::runtime_error("failed to create texture sampler!");
+            }
         }
     }
 
@@ -1168,17 +1176,18 @@ private:
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView;
-            imageInfo.sampler = textureSampler;
+            std::vector<VkDescriptorImageInfo> imageInfos{};
 
-            VkDescriptorImageInfo imageInfoO{};
-            imageInfoO.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfoO.imageView = textureImageViewO;
-            imageInfoO.sampler = textureSamplerO;
+            for (int j = 0; j < textureToCreate; j++)
+            {
+                VkDescriptorImageInfo imageInfo{};
+                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageInfo.imageView = textureImageViews[j];
+                imageInfo.sampler = textureSamplers[j];
+                imageInfos.push_back(imageInfo);
+            }
 
-            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+            std::array<VkWriteDescriptorSet, textureToCreate+1> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = descriptorSets[i];
@@ -1188,25 +1197,21 @@ private:
             descriptorWrites[0].descriptorCount = 1;
             descriptorWrites[0].pBufferInfo = &bufferInfo;
 
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = descriptorSets[i];
-            descriptorWrites[1].dstBinding = 1;
-            descriptorWrites[1].dstArrayElement = 0;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].pImageInfo = &imageInfo;
-
-            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[2].dstSet = descriptorSets[i];
-            descriptorWrites[2].dstBinding = 2;
-            descriptorWrites[2].dstArrayElement = 0;
-            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[2].descriptorCount = 1;
-            descriptorWrites[2].pImageInfo = &imageInfoO;
+            for (int j = 0; j < textureToCreate; j++)
+            {
+                descriptorWrites[j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrites[j + 1].dstSet = descriptorSets[i];
+                descriptorWrites[j + 1].dstBinding = j + 1;
+                descriptorWrites[j + 1].dstArrayElement = 0;
+                descriptorWrites[j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                descriptorWrites[j + 1].descriptorCount = 1;
+                descriptorWrites[j + 1].pImageInfo = &imageInfos[j];
+            }
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
     }
+
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
@@ -1726,8 +1731,28 @@ private:
     }
 };
 
+class displayObj
+{
+public:
+    int pos[2];
+
+    displayObj(const char* texturePathP, std::array<int, 2> posP, int textureIndex)
+    {
+        texturePaths[textureIndex] = texturePathP;
+
+        pos[0] = posP[0];
+        pos[1] = posP[1];
+    }
+};
+
 int main()
 {
+    displayObj button("/Textures/k.png", { 0,0 }, 0);
+    displayObj buttonO("/Textures/m.png", { 0,0 }, 1);
+    //displayObj buttonT("/Textures/mul.png", { 0,0 }, 2);
+    //texturePaths.push_back("/Textures/k.png");
+    //texturePaths.push_back("/Textures/m.png");
+
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
 
