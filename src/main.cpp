@@ -162,7 +162,7 @@ int prevMouseButtonState = GLFW_RELEASE;
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-constexpr int textureToCreate = 2;
+constexpr int textureToCreate = 4;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -688,21 +688,27 @@ private:
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        std::vector<VkDescriptorSetLayoutBinding> samplerLayoutBindings;
 
-        VkDescriptorSetLayoutBinding samplerLayoutBindingO{};
-        samplerLayoutBindingO.binding = 2;
-        samplerLayoutBindingO.descriptorCount = 1;
-        samplerLayoutBindingO.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBindingO.pImmutableSamplers = nullptr;
-        samplerLayoutBindingO.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        for (int i = 0; i < textureToCreate; i++)
+        {
+            VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+            samplerLayoutBinding.binding = i+1;
+            samplerLayoutBinding.descriptorCount = 1;
+            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerLayoutBinding.pImmutableSamplers = nullptr;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, samplerLayoutBinding, samplerLayoutBindingO };
+            samplerLayoutBindings.push_back(samplerLayoutBinding);
+        }
+
+        std::array<VkDescriptorSetLayoutBinding, textureToCreate+1> bindings = { uboLayoutBinding };
+
+        for (int i = 0; i < textureToCreate; i++)
+        {
+            bindings[i+1] = samplerLayoutBindings[i];
+        }
+
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -907,9 +913,10 @@ private:
 
     void createTextureImageView()
     {   
-
-        textureImageViews.push_back(createImageView(textureImages[0], VK_FORMAT_R8G8B8A8_SRGB));
-        textureImageViews.push_back(createImageView(textureImages[1], VK_FORMAT_R8G8B8A8_SRGB));
+        for (int i = 0; i < textureToCreate; i++)
+        {
+            textureImageViews.push_back(createImageView(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB));
+        }
     }
 
     void createTextureSampler()
@@ -1749,7 +1756,8 @@ int main()
 {
     displayObj button("/Textures/k.png", { 0,0 }, 0);
     displayObj buttonO("/Textures/m.png", { 0,0 }, 1);
-    //displayObj buttonT("/Textures/mul.png", { 0,0 }, 2);
+    displayObj buttonT("/Textures/mul.png", { 0,0 }, 2);
+    displayObj buttonTh("/Textures/two.png", { 0,0 }, 3);
     //texturePaths.push_back("/Textures/k.png");
     //texturePaths.push_back("/Textures/m.png");
 
