@@ -82,6 +82,7 @@ struct Vertex
     glm::vec2 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
+    int id;
 
     static VkVertexInputBindingDescription getBindingDescription()
     {
@@ -93,9 +94,9 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+        std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -112,6 +113,11 @@ struct Vertex
         attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
+        attributeDescriptions[3].binding = 0;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = VK_FORMAT_R32G32_SINT;
+        attributeDescriptions[3].offset = offsetof(Vertex, id);
+
         return attributeDescriptions;
     }
 };
@@ -123,29 +129,11 @@ struct UniformBufferObject
     alignas(16) glm::mat4 proj;
 };
 
-const std::vector<Vertex> vertices = {
-    {{2.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up left
-    {{3.25f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up right
-    {{3.25f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down right
-    {{2.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down left
+std::vector<Vertex> vertices = {
 
-    {{0.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
-    {{1.25f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
-    {{1.25f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
-    {{0.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
-
-    {{-2.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
-    {{-0.75f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
-    {{-0.75f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
-    {{-2.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
-
-    {{-14.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},     // Up right
-    {{-12.75f, -0.75f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},    // Up left
-    {{-12.75f, -0.25f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},    // Down left
-    {{-14.0f, -0.25f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},     // Down right
 };
 
-const std::vector<uint16_t> indices = {
+std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0,
     4, 5, 6, 6, 7, 4,
     8, 9, 10, 10, 11, 8,
@@ -1741,25 +1729,54 @@ private:
 class displayObj
 {
 public:
-    int pos[2];
+    float pos[2];
 
-    displayObj(const char* texturePathP, std::array<int, 2> posP, int textureIndex)
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex)
     {
         texturePaths[textureIndex] = texturePathP;
 
         pos[0] = posP[0];
         pos[1] = posP[1];
+        
+        for (int i = 0; i < 4; i++)
+        {
+            int id = (vertices.size() / 4)+1;
+
+            //std::cout << id << std::endl;
+            switch (vertices.size()%4)
+            {
+            case 0:
+                vertices.push_back({ {pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id });
+                break;
+            case 1:
+                vertices.push_back({ {pos[0]+1.25f, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
+                break;
+            case 2:
+                vertices.push_back({ {pos[0]+1.25, pos[1]+0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
+                break;
+            case 3:
+                vertices.push_back({ {pos[0], pos[1]+0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
+                break;
+            default:
+                break;
+            }
+        }
     }
 };
 
 int main()
 {
-    displayObj button("/Textures/k.png", { 0,0 }, 0);
-    displayObj buttonO("/Textures/m.png", { 0,0 }, 1);
-    displayObj buttonT("/Textures/mul.png", { 0,0 }, 2);
-    displayObj buttonTh("/Textures/two.png", { 0,0 }, 3);
-    //texturePaths.push_back("/Textures/k.png");
-    //texturePaths.push_back("/Textures/m.png");
+    displayObj button("/Textures/k.png", { 2.0f, -0.75f }, 0);
+    displayObj buttonO("/Textures/m.png", { 0.0f, -0.75f }, 1);
+    displayObj buttonT("/Textures/mul.png", { -2.0f, -0.75f }, 2);
+    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3);
+    
+    int vertLen = vertices.size();
+
+    for (int i = 0; i < 4; i++)
+    {
+        vertices.push_back({ {14.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, vertLen });
+    }
 
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
