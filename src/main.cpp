@@ -134,10 +134,7 @@ std::vector<Vertex> vertices = {
 };
 
 std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4,
-    8, 9, 10, 10, 11, 8,
-    12, 13, 14, 14, 16, 12
+
 };
 
 std::string findResourcePath(std::string pathP);
@@ -150,7 +147,7 @@ int prevMouseButtonState = GLFW_RELEASE;
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-constexpr int textureToCreate = 4;
+constexpr int textureToCreate = 6;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -1073,7 +1070,7 @@ private:
 
     void createVertexBuffer()
     {
-        VkDeviceSize bufferSize = sizeof(vertices) * vertices.size();
+        VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -1094,7 +1091,7 @@ private:
 
     void createIndexBuffer()
     {
-        VkDeviceSize bufferSize = sizeof(indices) * indices.size();
+        VkDeviceSize bufferSize = 2 * indices.size();
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -1206,7 +1203,6 @@ private:
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
     }
-
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
@@ -1731,31 +1727,41 @@ class displayObj
 public:
     float pos[2];
 
-    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex)
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize)
     {
         texturePaths[textureIndex] = texturePathP;
 
         pos[0] = posP[0];
         pos[1] = posP[1];
         
+        int vertSize = vertices.size() / 4;
+        uint16_t indicesTemplate[6] = { 0, 1, 2, 2, 3, 0, };
+
+        float firstPosAdder = 1.25f*fontSize;
+        float secondPosAdder = 0.5f*fontSize;
+
+        for (int i = 0; i < 6; i++)
+        {
+            indices.push_back(indicesTemplate[i]+(vertSize * 4));
+        }
+
         for (int i = 0; i < 4; i++)
         {
             int id = (vertices.size() / 4)+1;
 
-            //std::cout << id << std::endl;
             switch (vertices.size()%4)
             {
             case 0:
                 vertices.push_back({ {pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id });
                 break;
             case 1:
-                vertices.push_back({ {pos[0]+1.25f, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
+                vertices.push_back({ {pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
                 break;
             case 2:
-                vertices.push_back({ {pos[0]+1.25, pos[1]+0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
+                vertices.push_back({ {pos[0]+firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
                 break;
             case 3:
-                vertices.push_back({ {pos[0], pos[1]+0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
+                vertices.push_back({ {pos[0], pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
                 break;
             default:
                 break;
@@ -1766,18 +1772,19 @@ public:
 
 int main()
 {
-    displayObj button("/Textures/k.png", { 2.0f, -0.75f }, 0);
-    displayObj buttonO("/Textures/m.png", { 0.0f, -0.75f }, 1);
-    displayObj buttonT("/Textures/mul.png", { -2.0f, -0.75f }, 2);
-    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3);
+
+    int numberFontSize = 1;
+    int buttonFontSize = 1;
+    int simbolFontSize = 1;
+
+
+    displayObj button("/Textures/expFunc.png", { 2.0f, -0.75f }, 0, 1);
+    displayObj buttonO("/Textures/zero.png", { 0.0f, -0.75f }, 1, 1);
+    displayObj buttonT("/Textures/one.png", { -2.0f, -0.75f }, 2, numberFontSize);
+    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3, numberFontSize);
+    displayObj buttonF("/Textures/three.png", { 0.0f, 0.0f }, 4, numberFontSize);
+    displayObj buttonFv("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize);
     
-    int vertLen = vertices.size();
-
-    for (int i = 0; i < 4; i++)
-    {
-        vertices.push_back({ {14.0f, -0.75f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, vertLen });
-    }
-
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
 
