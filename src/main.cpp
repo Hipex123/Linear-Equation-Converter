@@ -139,8 +139,11 @@ std::vector<uint16_t> indices = {
 
 std::string findResourcePath(std::string pathP);
 
-float mouseXpos;
-float mouseYpos;
+float mouseXpos, mouseYpos;
+
+float mouseXposNorm, mouseYposNorm;
+
+int windowWidth, windowHeight;
 
 int prevMouseButtonState = GLFW_RELEASE;
 
@@ -155,6 +158,14 @@ std::vector<VkImage> textureImages(textureToCreate);
 std::vector<VkDeviceMemory> textureImageMemories(textureToCreate);
 std::vector<VkImageView> textureImageViews;
 std::vector<VkSampler> textureSamplers(textureToCreate);
+
+glm::mat4 uniformBufferProj;
+glm::mat4 uniformBufferView;
+int numberOfButtons;
+std::vector<glm::vec4> buttonCoords;
+std::array<glm::vec4, 20> buttonNormCoords;
+
+//glm::vec4 test = {};
 
 class App
 {
@@ -303,6 +314,13 @@ private:
         {
             glfwPollEvents();
             drawFrame();
+            glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+            for (int i = 0; i < numberOfButtons; i++)
+            {
+                buttonNormCoords[i] = uniformBufferProj * uniformBufferView * buttonCoords[i];
+                buttonNormCoords[i] /= buttonNormCoords[i].w;
+            }
         }
 
         vkDeviceWaitIdle(device);
@@ -1408,6 +1426,9 @@ private:
         ubo.proj = glm::perspective(glm::radians(FOV), swapChainExtent.width / (float)swapChainExtent.height, nearClippingPlane, farClippingPlane);
         ubo.proj[1][1] *= -1;
 
+        uniformBufferProj = ubo.proj;
+        uniformBufferView = ubo.view;
+
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
 
@@ -1719,7 +1740,7 @@ class displayObj
 public:
     float pos[2];
 
-    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize)
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton)
     {
         texturePaths[textureIndex] = texturePathP;
 
@@ -1759,6 +1780,13 @@ public:
                 break;
             }
         }
+
+        if (isButton)
+        {
+            numberOfButtons+=2;
+            buttonCoords.push_back(glm::vec4({ pos[0], pos[1], 0, 1}));
+            buttonCoords.push_back(glm::vec4({ pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 }));
+        }
     }
 };
 
@@ -1770,12 +1798,12 @@ int main()
     int simbolFontSize = 1;
 
 
-    displayObj button("/Textures/expFunc.png", { 2.0f, -0.75f }, 0, 1);
-    displayObj buttonO("/Textures/zero.png", { 0.0f, -0.75f }, 1, 1);
-    displayObj buttonT("/Textures/one.png", { -2.0f, -0.75f }, 2, numberFontSize);
-    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3, numberFontSize);
-    displayObj buttonF("/Textures/three.png", { 0.0f, 0.0f }, 4, numberFontSize);
-    displayObj buttonFv("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize);
+    displayObj button("/Textures/explicit.png", { 2.0f, -1.00f }, 0, buttonFontSize, true);
+    displayObj buttonO("/Textures/zero.png", { 0.0f, -0.75f }, 1, numberFontSize, false);
+    displayObj buttonT("/Textures/one.png", { -2.0f, -0.75f }, 2, numberFontSize, false);
+    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3, numberFontSize, false);
+    displayObj buttonF("/Textures/three.png", { 0.0f, 0.0f }, 4, numberFontSize, false);
+    displayObj buttonFv("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize, false);
     
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
@@ -1803,18 +1831,31 @@ std::string findResourcePath(std::string pathP)
     return strPath + pathP;
 }
 
-
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
     mouseXpos = xpos;
     mouseYpos = ypos;
+
+    mouseXposNorm = -((2.0f * xpos) / windowWidth - 1.0f);
+    mouseYposNorm = 1.0f - (2.0f * ypos) / windowHeight;
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        std::cout << mouseXpos << ", " << mouseYpos << std::endl;
+        std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
+
+        std::cout << "BUTTON:" << buttonNormCoords[0].x << ", " << buttonNormCoords[0].y << std::endl;
+
+        std::cout << std::endl;
+
         prevMouseButtonState = GLFW_PRESS;
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[0].x && mouseYposNorm < buttonNormCoords[0].y
+        && mouseYposNorm > buttonNormCoords[1].y && mouseXposNorm < buttonNormCoords[1].x)
+    {
+        std::cout << "TETETETETE" << std::endl;
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
