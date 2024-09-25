@@ -162,10 +162,11 @@ std::vector<VkSampler> textureSamplers(textureToCreate);
 glm::mat4 uniformBufferProj;
 glm::mat4 uniformBufferView;
 int numberOfButtons;
-std::vector<glm::vec4> buttonCoords;
-std::array<glm::vec4, 20> buttonNormCoords;
+std::vector<std::array<glm::vec4, 2>> buttonCoords;
+std::array<glm::vec4[2], 20> buttonNormCoords;
 
-//glm::vec4 test = {};
+int firstFuncType{};
+int secondFuncType{};
 
 class App
 {
@@ -318,8 +319,11 @@ private:
 
             for (int i = 0; i < numberOfButtons; i++)
             {
-                buttonNormCoords[i] = uniformBufferProj * uniformBufferView * buttonCoords[i];
-                buttonNormCoords[i] /= buttonNormCoords[i].w;
+                for (int j = 0; j < 2; j++)
+                {
+                    buttonNormCoords[i][j] = uniformBufferProj * uniformBufferView * buttonCoords[i][j];
+                    buttonNormCoords[i][j] /= buttonNormCoords[i][j].w;
+                }
             }
         }
 
@@ -696,7 +700,7 @@ private:
         for (int i = 0; i < textureToCreate; i++)
         {
             VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-            samplerLayoutBinding.binding = i+1;
+            samplerLayoutBinding.binding = i + 1;
             samplerLayoutBinding.descriptorCount = 1;
             samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             samplerLayoutBinding.pImmutableSamplers = nullptr;
@@ -705,11 +709,11 @@ private:
             samplerLayoutBindings.push_back(samplerLayoutBinding);
         }
 
-        std::array<VkDescriptorSetLayoutBinding, textureToCreate+1> bindings = { uboLayoutBinding };
+        std::array<VkDescriptorSetLayoutBinding, textureToCreate + 1> bindings = { uboLayoutBinding };
 
         for (int i = 0; i < textureToCreate; i++)
         {
-            bindings[i+1] = samplerLayoutBindings[i];
+            bindings[i + 1] = samplerLayoutBindings[i];
         }
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -915,7 +919,7 @@ private:
     }
 
     void createTextureImageView()
-    {   
+    {
         for (int i = 0; i < textureToCreate; i++)
         {
             textureImageViews.push_back(createImageView(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB));
@@ -1197,7 +1201,7 @@ private:
                 imageInfos.push_back(imageInfo);
             }
 
-            std::array<VkWriteDescriptorSet, textureToCreate+1> descriptorWrites{};
+            std::array<VkWriteDescriptorSet, textureToCreate + 1> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[0].dstSet = descriptorSets[i];
@@ -1746,23 +1750,23 @@ public:
 
         pos[0] = posP[0];
         pos[1] = posP[1];
-        
+
         int vertSize = vertices.size() / 4;
         uint16_t indicesTemplate[6] = { 0, 1, 2, 2, 3, 0, };
 
-        float firstPosAdder = 1.25f*fontSize;
-        float secondPosAdder = 0.5f*fontSize;
+        float firstPosAdder = 1.25f * fontSize;
+        float secondPosAdder = 0.5f * fontSize;
 
         for (int i = 0; i < 6; i++)
         {
-            indices.push_back(indicesTemplate[i]+(vertSize * 4));
+            indices.push_back(indicesTemplate[i] + (vertSize * 4));
         }
 
         for (int i = 0; i < 4; i++)
         {
-            int id = (vertices.size() / 4)+1;
+            int id = (vertices.size() / 4) + 1;
 
-            switch (vertices.size()%4)
+            switch (vertices.size() % 4)
             {
             case 0:
                 vertices.push_back({ {pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id });
@@ -1771,7 +1775,7 @@ public:
                 vertices.push_back({ {pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
                 break;
             case 2:
-                vertices.push_back({ {pos[0]+firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
+                vertices.push_back({ {pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
                 break;
             case 3:
                 vertices.push_back({ {pos[0], pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
@@ -1783,9 +1787,8 @@ public:
 
         if (isButton)
         {
-            numberOfButtons+=2;
-            buttonCoords.push_back(glm::vec4({ pos[0], pos[1], 0, 1}));
-            buttonCoords.push_back(glm::vec4({ pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 }));
+            numberOfButtons++;
+            buttonCoords.push_back({ glm::vec4({ pos[0], pos[1], 0, 1}), glm::vec4({ pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 }) });
         }
     }
 };
@@ -1798,13 +1801,17 @@ int main()
     int simbolFontSize = 1;
 
 
-    displayObj button("/Textures/explicit.png", { 2.0f, -1.00f }, 0, buttonFontSize, true);
-    displayObj buttonO("/Textures/zero.png", { 0.0f, -0.75f }, 1, numberFontSize, false);
-    displayObj buttonT("/Textures/one.png", { -2.0f, -0.75f }, 2, numberFontSize, false);
-    displayObj buttonTh("/Textures/two.png", { 2.0f, 0.0f }, 3, numberFontSize, false);
-    displayObj buttonF("/Textures/three.png", { 0.0f, 0.0f }, 4, numberFontSize, false);
-    displayObj buttonFv("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize, false);
-    
+    displayObj button1("/Textures/explicit.png", { 2.0f, -1.00f }, 0, buttonFontSize, true);
+    displayObj button2("/Textures/implicit.png", { 2.0f, 0.0f }, 1, buttonFontSize, true);
+    displayObj button3("/Textures/piecewise.png", { 2.0f, 1.0f }, 2, buttonFontSize, true);
+    displayObj button4("/Textures/explicit.png", { -3.0f, -1.00f }, 3, buttonFontSize, true);
+    displayObj button5("/Textures/implicit.png", { -3.0f, 0.0f }, 4, buttonFontSize, true);
+    displayObj button6("/Textures/piecewise.png", { -3.0f, 1.0f }, 5, buttonFontSize, true);
+
+    //displayObj button4("/Textures/explicit.png", { -2.0f, 0.0f }, 3, numberFontSize, false);
+    //displayObj button5("/Textures/three.png", { -2.0f, 0.0f }, 4, numberFontSize, false);
+    //displayObj button6("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize, false);
+
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
 
@@ -1844,18 +1851,46 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
+        //std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
 
-        std::cout << "BUTTON:" << buttonNormCoords[0].x << ", " << buttonNormCoords[0].y << std::endl;
+        std::cout << firstFuncType << ", " << secondFuncType << std::endl;
+
+
 
         std::cout << std::endl;
 
         prevMouseButtonState = GLFW_PRESS;
     }
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[0].x && mouseYposNorm < buttonNormCoords[0].y
-        && mouseYposNorm > buttonNormCoords[1].y && mouseXposNorm < buttonNormCoords[1].x)
+
+    for (int i = 0; i < numberOfButtons; i++)
     {
-        std::cout << "TETETETETE" << std::endl;
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y
+            && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
+        {
+            switch (i)
+            {
+            case 0:
+                firstFuncType = 1;
+                break;
+            case 1:
+                firstFuncType = 2;
+                break;
+            case 2:
+                firstFuncType = 3;
+                break;
+            case 3:
+                secondFuncType = 1;
+                break;
+            case 4:
+                secondFuncType = 2;
+                break;
+            case 5:
+                secondFuncType = 3;
+                break;
+            default:
+                break;
+            }
+        }
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
