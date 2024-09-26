@@ -22,6 +22,7 @@
 #include <optional>
 #include <set>
 #include <filesystem>
+#include <variant>
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -129,6 +130,16 @@ struct UniformBufferObject
     alignas(16) glm::mat4 proj;
 };
 
+struct convertParams {
+    double k = 1;
+    double m = 1;
+    double n = 1;
+    double a = 1;
+    double b = 1;
+    double c = 1;
+};
+
+
 std::vector<Vertex> vertices = {
 
 };
@@ -140,7 +151,6 @@ std::vector<uint16_t> indices = {
 std::string findResourcePath(std::string pathP);
 
 float mouseXpos, mouseYpos;
-
 float mouseXposNorm, mouseYposNorm;
 
 int windowWidth, windowHeight;
@@ -150,7 +160,7 @@ int prevMouseButtonState = GLFW_RELEASE;
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-constexpr int textureToCreate = 6;
+constexpr int textureToCreate = 12;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -167,6 +177,8 @@ std::array<glm::vec4[2], 20> buttonNormCoords;
 
 int firstFuncType{};
 int secondFuncType{};
+
+convertParams globalConverts;
 
 class App
 {
@@ -1793,24 +1805,110 @@ public:
     }
 };
 
+static class linearFunctionConverter
+{
+public:
+    static std::variant<std::array<double, 2>, std::array<double, 3> > convertLinearFunction()
+    {
+        if (firstFuncType == 1 && secondFuncType == 2) { return expToImp(globalConverts.k, globalConverts.n); }
+        else if (firstFuncType == 1 && secondFuncType == 3) { return expToPcw(globalConverts.k, globalConverts.n); }
+
+        else if (firstFuncType == 2 && secondFuncType == 1) { return impToExp(globalConverts.a, globalConverts.b, globalConverts.c); }
+        else if (firstFuncType == 2 && secondFuncType == 3) { return impToPcw(globalConverts.a, globalConverts.b, globalConverts.c); }
+
+        else if (firstFuncType == 3 && secondFuncType == 1) { return pcwToExp(globalConverts.m, globalConverts.n); }
+        else if (firstFuncType == 3 && secondFuncType == 2) { return pcwToImp(globalConverts.m, globalConverts.n); }
+
+        else { return {}; }
+    }
+
+private:
+    static std::array<double, 3> expToImp(double k, double n)
+    {
+        return { -k, 1,  -n};
+    }
+
+    static std::array<double, 2> expToPcw(double k, double n)
+    {
+        return { n/(-k), n };
+    }
+
+
+    static std::array<double, 2> impToExp(double a, double b, double c)
+    {
+        return { -(a/b), -(c/b) };
+    }
+
+    static std::array<double, 2> impToPcw(double a, double b, double c)
+    {
+        return { -(c / a), -(c / b) };
+    }
+
+
+    static std::array<double, 2> pcwToExp(double m, double n)
+    {
+        return { -(( lcm(m, n) / m ) / ( lcm(m, n) / n )), lcm(m, n) / (lcm(m, n) / n) };
+    }
+
+    static std::array<double, 3> pcwToImp(double m, double n)
+    {
+        return { lcm(m, n) / m, lcm(m, n) / n, -lcm(m, n) };
+    }
+
+
+    static double gcd(double a, double b)
+    {
+        while(b != 0)
+        {
+            int temp = b;
+            b = std::fmod(a, b);
+            a = temp;
+        }
+        return a;
+    }
+
+    static double lcm(double a, double b) {
+        return std::abs(a * b) / gcd(a, b);
+    }
+};
+
 int main()
 {
+    std::string num1, num2;
+
+    std::cin >> num1;
+    std::cin >> num2;
+
+    std::string inputName1 = "/Textures/" + num1 + ".png";
+    std::string inputName2 = "/Textures/" + num2 + ".png";
+
+    const char* inputName1Chr = inputName1.c_str();
+    const char* inputName2Chr = inputName2.c_str();
+
 
     int numberFontSize = 1;
     int buttonFontSize = 1;
+    int inputFontSize = 1;
     int simbolFontSize = 1;
 
 
     displayObj button1("/Textures/explicit.png", { 2.0f, -1.00f }, 0, buttonFontSize, true);
     displayObj button2("/Textures/implicit.png", { 2.0f, 0.0f }, 1, buttonFontSize, true);
     displayObj button3("/Textures/piecewise.png", { 2.0f, 1.0f }, 2, buttonFontSize, true);
+
     displayObj button4("/Textures/explicit.png", { -3.0f, -1.00f }, 3, buttonFontSize, true);
     displayObj button5("/Textures/implicit.png", { -3.0f, 0.0f }, 4, buttonFontSize, true);
     displayObj button6("/Textures/piecewise.png", { -3.0f, 1.0f }, 5, buttonFontSize, true);
 
-    //displayObj button4("/Textures/explicit.png", { -2.0f, 0.0f }, 3, numberFontSize, false);
-    //displayObj button5("/Textures/three.png", { -2.0f, 0.0f }, 4, numberFontSize, false);
-    //displayObj button6("/Textures/four.png", { -2.0f, 0.0f }, 5, numberFontSize, false);
+    displayObj input1("/Textures/m.png", { 0.7f, -0.5f }, 6, inputFontSize, false);
+    displayObj equ1("/Textures/equ.png", { -0.5f, -0.5f }, 7, simbolFontSize, false);
+
+    displayObj input2("/Textures/n.png", { 0.7f, 0.5f }, 8, inputFontSize, false);
+    displayObj equ2("/Textures/equ.png", { -0.5f, 0.5f }, 9, simbolFontSize, false);
+
+    displayObj inputNum1(inputName1Chr, {-1.8f, -0.5f}, 10, numberFontSize, false);
+    displayObj inputNum2(inputName2Chr, { -1.8f, 0.5f }, 11, numberFontSize, false);
+
 
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
@@ -1853,11 +1951,36 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
         //std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
 
-        std::cout << firstFuncType << ", " << secondFuncType << std::endl;
+        std::cout << firstFuncType << ", " << secondFuncType << std::endl << std::endl;
 
+        prevMouseButtonState = GLFW_PRESS;
+    }
 
+    if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        //globalConverts.a = 10;
+        //globalConverts.b = 8;
+        //globalConverts.c = 1;
 
-        std::cout << std::endl;
+        //globalConverts.k = 6;
+        //globalConverts.n = 9;
+
+        //globalConverts.m = 3;
+        //globalConverts.n = -2;
+
+        auto result = linearFunctionConverter::convertLinearFunction();
+
+        if (std::holds_alternative<std::array<double, 2>>(result))
+        {
+            const auto& arr = std::get<std::array<double, 2>>(result);
+            std::cout << arr[0] << ", " << arr[1] << std::endl << std::endl;
+        }
+        else if (std::holds_alternative<std::array<double, 3>>(result))
+        {
+            const auto& arr = std::get<std::array<double, 3>>(result);
+            std::cout << arr[0] << ", " << arr[1]<< ", " << arr[2] << std::endl << std::endl;
+        }
+
 
         prevMouseButtonState = GLFW_PRESS;
     }
