@@ -26,11 +26,11 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation" };
+const std::vector<const char *> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"};
 
-const std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+const std::vector<const char *> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -38,7 +38,7 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger)
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr)
@@ -51,7 +51,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator)
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr)
@@ -128,9 +128,12 @@ struct UniformBufferObject
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
+    alignas(4) int firstFuncType;
+    alignas(4) int secondFuncType;
 };
 
-struct convertParams {
+struct convertParams
+{
     double k = 1;
     double m = 1;
     double n = 1;
@@ -138,7 +141,6 @@ struct convertParams {
     double b = 1;
     double c = 1;
 };
-
 
 std::vector<Vertex> vertices = {
 
@@ -157,10 +159,10 @@ int windowWidth, windowHeight;
 
 int prevMouseButtonState = GLFW_RELEASE;
 
-void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
-void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos);
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
-constexpr int textureToCreate = 12;
+constexpr int textureToCreate = 20;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -183,7 +185,7 @@ convertParams globalConverts;
 class App
 {
 public:
-    const char* title;
+    const char *title;
     int width;
     int height;
 
@@ -198,7 +200,7 @@ public:
     float nearClippingPlane;
     float farClippingPlane;
 
-    App(const char* titleP = "App", int widthP = 500, int heightP = 500, int animTimeAccelerationP = 0, int animSpeedP = 1,
+    App(const char *titleP = "App", int widthP = 500, int heightP = 500, int animTimeAccelerationP = 0, int animSpeedP = 1,
         glm::vec3 modelPositionP = glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3 camPositionP = glm::vec3(2.0f, 2.0f, 2.0f),
         glm::vec3 camLookCordsP = glm::vec3(0.0f, 0.0f, 0.0f), float FOVp = 45.0f, float nearClippingPlaneP = 0.1f,
         float farClippingPlaneP = 30.0f)
@@ -225,7 +227,7 @@ public:
     }
 
 private:
-    GLFWwindow* window;
+    GLFWwindow *window;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -258,7 +260,7 @@ private:
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void*> uniformBuffersMapped;
+    std::vector<void *> uniformBuffersMapped;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -285,9 +287,9 @@ private:
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+    static void framebufferResizeCallback(GLFWwindow *window, int width, int height)
     {
-        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<App *>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
 
@@ -462,7 +464,7 @@ private:
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
             populateDebugMessengerCreateInfo(debugCreateInfo);
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
         }
         else
         {
@@ -477,7 +479,7 @@ private:
         }
     }
 
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
     {
         createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -521,7 +523,7 @@ private:
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-        for (const auto& device : devices)
+        for (const auto &device : devices)
         {
             if (isDeviceSuitable(device))
             {
@@ -541,7 +543,7 @@ private:
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-        std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -613,7 +615,7 @@ private:
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-        uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+        uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
         if (indices.graphicsFamily != indices.presentFamily)
         {
@@ -721,7 +723,7 @@ private:
             samplerLayoutBindings.push_back(samplerLayoutBinding);
         }
 
-        std::array<VkDescriptorSetLayoutBinding, textureToCreate + 1> bindings = { uboLayoutBinding };
+        std::array<VkDescriptorSetLayoutBinding, textureToCreate + 1> bindings = {uboLayoutBinding};
 
         for (int i = 0; i < textureToCreate; i++)
         {
@@ -759,7 +761,7 @@ private:
         fragShaderStageInfo.module = fragShaderModule;
         fragShaderStageInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -814,7 +816,7 @@ private:
 
         std::vector<VkDynamicState> dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR };
+            VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -862,7 +864,7 @@ private:
         for (size_t i = 0; i < swapChainImageViews.size(); i++)
         {
             VkImageView attachments[] = {
-                swapChainImageViews[i] };
+                swapChainImageViews[i]};
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -895,13 +897,13 @@ private:
         }
     }
 
-    void createTextureImage(const std::string& texturePath, VkImage& textureImage, VkDeviceMemory& textureImageMemory)
+    void createTextureImage(const std::string &texturePath, VkImage &textureImage, VkDeviceMemory &textureImageMemory)
     {
         int texWidth, texHeight, texChannels;
 
         std::string finalPath = findResourcePath(texturePath);
 
-        stbi_uc* pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc *pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels)
@@ -913,7 +915,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void* data;
+        void *data;
         vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, pixels, static_cast<size_t>(imageSize));
         vkUnmapMemory(device, stagingBufferMemory);
@@ -989,7 +991,7 @@ private:
         return imageView;
     }
 
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory)
     {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1091,11 +1093,11 @@ private:
         region.imageSubresource.mipLevel = 0;
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
-        region.imageOffset = { 0, 0, 0 };
+        region.imageOffset = {0, 0, 0};
         region.imageExtent = {
             width,
             height,
-            1 };
+            1};
 
         vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -1110,7 +1112,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void* data;
+        void *data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
@@ -1131,7 +1133,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void* data;
+        void *data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, indices.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
@@ -1238,7 +1240,7 @@ private:
         }
     }
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory)
     {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1350,7 +1352,8 @@ private:
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
@@ -1358,10 +1361,10 @@ private:
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderPass;
         renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
-        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapChainExtent;
 
-        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
@@ -1379,12 +1382,12 @@ private:
         vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
         VkRect2D scissor{};
-        scissor.offset = { 0, 0 };
+        scissor.offset = {0, 0};
         scissor.extent = swapChainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        VkBuffer vertexBuffers[] = { vertexBuffer };
-        VkDeviceSize offsets[] = { 0 };
+        VkBuffer vertexBuffers[] = {vertexBuffer};
+        VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
@@ -1395,7 +1398,8 @@ private:
 
         vkCmdEndRenderPass(commandBuffer);
 
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+        {
             throw std::runtime_error("failed to record command buffer!");
         }
     }
@@ -1442,8 +1446,13 @@ private:
         ubo.proj = glm::perspective(glm::radians(FOV), swapChainExtent.width / (float)swapChainExtent.height, nearClippingPlane, farClippingPlane);
         ubo.proj[1][1] *= -1;
 
+        ubo.firstFuncType = firstFuncType;
+        ubo.secondFuncType = secondFuncType;
+
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
+
+        //std::cout<< ubo.secondFuncType << std::endl;
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
@@ -1475,8 +1484,8 @@ private:
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
@@ -1484,7 +1493,7 @@ private:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
-        VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -1499,7 +1508,7 @@ private:
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
 
-        VkSwapchainKHR swapChains[] = { swapChain };
+        VkSwapchainKHR swapChains[] = {swapChain};
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
 
@@ -1520,12 +1529,12 @@ private:
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    VkShaderModule createShaderModule(const std::vector<char>& code)
+    VkShaderModule createShaderModule(const std::vector<char> &code)
     {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
         VkShaderModule shaderModule;
         if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
@@ -1536,9 +1545,9 @@ private:
         return shaderModule;
     }
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
     {
-        for (const auto& availableFormat : availableFormats)
+        for (const auto &availableFormat : availableFormats)
         {
             if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
@@ -1549,12 +1558,12 @@ private:
         return availableFormats[0];
     }
 
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes)
     {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
         {
@@ -1567,7 +1576,7 @@ private:
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height) };
+                static_cast<uint32_t>(height)};
 
             actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
             actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -1632,7 +1641,7 @@ private:
 
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
-        for (const auto& extension : availableExtensions)
+        for (const auto &extension : availableExtensions)
         {
             requiredExtensions.erase(extension.extensionName);
         }
@@ -1651,7 +1660,7 @@ private:
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
         int i = 0;
-        for (const auto& queueFamily : queueFamilies)
+        for (const auto &queueFamily : queueFamilies)
         {
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
@@ -1677,13 +1686,13 @@ private:
         return indices;
     }
 
-    std::vector<const char*> getRequiredExtensions()
+    std::vector<const char *> getRequiredExtensions()
     {
         uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
+        const char **glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
         if (enableValidationLayers)
         {
@@ -1701,11 +1710,11 @@ private:
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-        for (const char* layerName : validationLayers)
+        for (const char *layerName : validationLayers)
         {
             bool layerFound = false;
 
-            for (const auto& layerProperties : availableLayers)
+            for (const auto &layerProperties : availableLayers)
             {
                 if (strcmp(layerName, layerProperties.layerName) == 0)
                 {
@@ -1723,7 +1732,7 @@ private:
         return true;
     }
 
-    static std::vector<char> readFile(const std::string& filename)
+    static std::vector<char> readFile(const std::string &filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -1743,7 +1752,7 @@ private:
         return buffer;
     }
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData)
     {
         std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
@@ -1756,7 +1765,7 @@ class displayObj
 public:
     float pos[2];
 
-    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton)
+    displayObj(const char *texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton)
     {
         texturePaths[textureIndex] = texturePathP;
 
@@ -1764,7 +1773,14 @@ public:
         pos[1] = posP[1];
 
         int vertSize = vertices.size() / 4;
-        uint16_t indicesTemplate[6] = { 0, 1, 2, 2, 3, 0, };
+        uint16_t indicesTemplate[6] = {
+            0,
+            1,
+            2,
+            2,
+            3,
+            0,
+        };
 
         float firstPosAdder = 1.25f * fontSize;
         float secondPosAdder = 0.5f * fontSize;
@@ -1781,16 +1797,16 @@ public:
             switch (vertices.size() % 4)
             {
             case 0:
-                vertices.push_back({ {pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id });
+                vertices.push_back({{pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id});
                 break;
             case 1:
-                vertices.push_back({ {pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
+                vertices.push_back({{pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id});
                 break;
             case 2:
-                vertices.push_back({ {pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
+                vertices.push_back({{pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id});
                 break;
             case 3:
-                vertices.push_back({ {pos[0], pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
+                vertices.push_back({{pos[0], pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id});
                 break;
             default:
                 break;
@@ -1800,65 +1816,83 @@ public:
         if (isButton)
         {
             numberOfButtons++;
-            buttonCoords.push_back({ glm::vec4({ pos[0], pos[1], 0, 1}), glm::vec4({ pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 }) });
+            buttonCoords.push_back({glm::vec4({pos[0], pos[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1})});
         }
     }
 };
 
-static class linearFunctionConverter
+class linearFunctionConverter
 {
 public:
-    static std::variant<std::array<double, 2>, std::array<double, 3> > convertLinearFunction()
+    static std::variant<std::array<double, 2>, std::array<double, 3>> convertLinearFunction()
     {
-        if (firstFuncType == 1 && secondFuncType == 2) { return expToImp(globalConverts.k, globalConverts.n); }
-        else if (firstFuncType == 1 && secondFuncType == 3) { return expToPcw(globalConverts.k, globalConverts.n); }
+        if (firstFuncType == 1 && secondFuncType == 2)
+        {
+            return expToImp(globalConverts.k, globalConverts.n);
+        }
+        else if (firstFuncType == 1 && secondFuncType == 3)
+        {
+            return expToPcw(globalConverts.k, globalConverts.n);
+        }
 
-        else if (firstFuncType == 2 && secondFuncType == 1) { return impToExp(globalConverts.a, globalConverts.b, globalConverts.c); }
-        else if (firstFuncType == 2 && secondFuncType == 3) { return impToPcw(globalConverts.a, globalConverts.b, globalConverts.c); }
+        else if (firstFuncType == 2 && secondFuncType == 1)
+        {
+            return impToExp(globalConverts.a, globalConverts.b, globalConverts.c);
+        }
+        else if (firstFuncType == 2 && secondFuncType == 3)
+        {
+            return impToPcw(globalConverts.a, globalConverts.b, globalConverts.c);
+        }
 
-        else if (firstFuncType == 3 && secondFuncType == 1) { return pcwToExp(globalConverts.m, globalConverts.n); }
-        else if (firstFuncType == 3 && secondFuncType == 2) { return pcwToImp(globalConverts.m, globalConverts.n); }
+        else if (firstFuncType == 3 && secondFuncType == 1)
+        {
+            return pcwToExp(globalConverts.m, globalConverts.n);
+        }
+        else if (firstFuncType == 3 && secondFuncType == 2)
+        {
+            return pcwToImp(globalConverts.m, globalConverts.n);
+        }
 
-        else { return {}; }
+        else
+        {
+            return {};
+        }
     }
 
 private:
     static std::array<double, 3> expToImp(double k, double n)
     {
-        return { -k, 1,  -n};
+        return {-k, 1, -n};
     }
 
     static std::array<double, 2> expToPcw(double k, double n)
     {
-        return { n/(-k), n };
+        return {n / (-k), n};
     }
-
 
     static std::array<double, 2> impToExp(double a, double b, double c)
     {
-        return { -(a/b), -(c/b) };
+        return {-(a / b), -(c / b)};
     }
 
     static std::array<double, 2> impToPcw(double a, double b, double c)
     {
-        return { -(c / a), -(c / b) };
+        return {-(c / a), -(c / b)};
     }
-
 
     static std::array<double, 2> pcwToExp(double m, double n)
     {
-        return { -(( lcm(m, n) / m ) / ( lcm(m, n) / n )), lcm(m, n) / (lcm(m, n) / n) };
+        return {-((lcm(m, n) / m) / (lcm(m, n) / n)), lcm(m, n) / (lcm(m, n) / n)};
     }
 
     static std::array<double, 3> pcwToImp(double m, double n)
     {
-        return { lcm(m, n) / m, lcm(m, n) / n, -lcm(m, n) };
+        return {lcm(m, n) / m, lcm(m, n) / n, -lcm(m, n)};
     }
-
 
     static double gcd(double a, double b)
     {
-        while(b != 0)
+        while (b != 0)
         {
             int temp = b;
             b = std::fmod(a, b);
@@ -1867,7 +1901,8 @@ private:
         return a;
     }
 
-    static double lcm(double a, double b) {
+    static double lcm(double a, double b)
+    {
         return std::abs(a * b) / gcd(a, b);
     }
 };
@@ -1882,42 +1917,51 @@ int main()
     std::string inputName1 = "/Textures/" + num1 + ".png";
     std::string inputName2 = "/Textures/" + num2 + ".png";
 
-    const char* inputName1Chr = inputName1.c_str();
-    const char* inputName2Chr = inputName2.c_str();
-
+    const char *inputName1Chr = inputName1.c_str();
+    const char *inputName2Chr = inputName2.c_str();
 
     int numberFontSize = 1;
     int buttonFontSize = 1;
     int inputFontSize = 1;
     int simbolFontSize = 1;
 
+    displayObj button1("/Textures/explicit.png", {2.0f, -1.00f}, 0, buttonFontSize, true);
+    displayObj button2("/Textures/implicit.png", {2.0f, 0.0f}, 1, buttonFontSize, true);
+    displayObj button3("/Textures/piecewise.png", {2.0f, 1.0f}, 2, buttonFontSize, true);
 
-    displayObj button1("/Textures/explicit.png", { 2.0f, -1.00f }, 0, buttonFontSize, true);
-    displayObj button2("/Textures/implicit.png", { 2.0f, 0.0f }, 1, buttonFontSize, true);
-    displayObj button3("/Textures/piecewise.png", { 2.0f, 1.0f }, 2, buttonFontSize, true);
+    displayObj button4("/Textures/explicit.png", {-3.0f, -1.00f}, 3, buttonFontSize, true);
+    displayObj button5("/Textures/implicit.png", {-3.0f, 0.0f}, 4, buttonFontSize, true);
+    displayObj button6("/Textures/piecewise.png", {-3.0f, 1.0f}, 5, buttonFontSize, true);
 
-    displayObj button4("/Textures/explicit.png", { -3.0f, -1.00f }, 3, buttonFontSize, true);
-    displayObj button5("/Textures/implicit.png", { -3.0f, 0.0f }, 4, buttonFontSize, true);
-    displayObj button6("/Textures/piecewise.png", { -3.0f, 1.0f }, 5, buttonFontSize, true);
+    displayObj input1("/Textures/m.png", {0.7f, -0.5f}, 6, inputFontSize, false);
+    displayObj equ1("/Textures/equ.png", {-0.5f, -0.5f}, 7, simbolFontSize, false);
 
-    displayObj input1("/Textures/m.png", { 0.7f, -0.5f }, 6, inputFontSize, false);
-    displayObj equ1("/Textures/equ.png", { -0.5f, -0.5f }, 7, simbolFontSize, false);
-
-    displayObj input2("/Textures/n.png", { 0.7f, 0.5f }, 8, inputFontSize, false);
-    displayObj equ2("/Textures/equ.png", { -0.5f, 0.5f }, 9, simbolFontSize, false);
+    displayObj input2("/Textures/n.png", {0.7f, 0.5f}, 8, inputFontSize, false);
+    displayObj equ2("/Textures/equ.png", {-0.5f, 0.5f}, 9, simbolFontSize, false);
 
     displayObj inputNum1(inputName1Chr, {-1.8f, -0.5f}, 10, numberFontSize, false);
-    displayObj inputNum2(inputName2Chr, { -1.8f, 0.5f }, 11, numberFontSize, false);
+    displayObj inputNum2(inputName2Chr, {-1.8f, 0.5f}, 11, numberFontSize, false);
 
+    displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 12, simbolFontSize, false);
+    displayObj function2("/Textures/impFunc.png", { 2.0f, -20.0f }, 13, simbolFontSize, false);
+    displayObj function3("/Textures/pcwFunc.png", { 2.0f, -20.0f }, 14, simbolFontSize, false);
+
+    displayObj function4("/Textures/expFunc.png", { -3.0f, -2.0f }, 15, simbolFontSize, false);
+    displayObj function5("/Textures/impFunc.png", { -3.0f, -20.0f }, 16, simbolFontSize, false);
+    displayObj function6("/Textures/pcwFunc.png", { -3.0f, -20.0f }, 17, simbolFontSize, false);
+
+    displayObj empty("/Textures/empty.png", { -3.0f, -20.0f }, 18, simbolFontSize, false);
+
+    displayObj arrow("/Textures/arrow.png", { -0.5f, -2.0f }, 19, simbolFontSize, false);
 
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
+            glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
 
     try
     {
         app.run();
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
@@ -1936,7 +1980,8 @@ std::string findResourcePath(std::string pathP)
     return strPath + pathP;
 }
 
-void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
+void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
+{
     mouseXpos = xpos;
     mouseYpos = ypos;
 
@@ -1944,14 +1989,14 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
     mouseYposNorm = 1.0f - (2.0f * ypos) / windowHeight;
 }
 
-void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        //std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
+        std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
 
-        std::cout << firstFuncType << ", " << secondFuncType << std::endl << std::endl;
+        //std::cout << firstFuncType << ", " << secondFuncType << std::endl << std::endl
 
         prevMouseButtonState = GLFW_PRESS;
     }
@@ -1962,33 +2007,33 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         //globalConverts.b = 8;
         //globalConverts.c = 1;
 
-        //globalConverts.k = 6;
-        //globalConverts.n = 9;
+        // globalConverts.k = 6;
+        // globalConverts.n = 9;
 
-        //globalConverts.m = 3;
-        //globalConverts.n = -2;
+        // globalConverts.m = 3;
+        // globalConverts.n = -2;
 
         auto result = linearFunctionConverter::convertLinearFunction();
 
         if (std::holds_alternative<std::array<double, 2>>(result))
         {
-            const auto& arr = std::get<std::array<double, 2>>(result);
-            std::cout << arr[0] << ", " << arr[1] << std::endl << std::endl;
+            const auto &arr = std::get<std::array<double, 2>>(result);
+            std::cout << arr[0] << ", " << arr[1] << std::endl
+                      << std::endl;
         }
         else if (std::holds_alternative<std::array<double, 3>>(result))
         {
-            const auto& arr = std::get<std::array<double, 3>>(result);
-            std::cout << arr[0] << ", " << arr[1]<< ", " << arr[2] << std::endl << std::endl;
+            const auto &arr = std::get<std::array<double, 3>>(result);
+            std::cout << arr[0] << ", " << arr[1] << ", " << arr[2] << std::endl
+                      << std::endl;
         }
-
 
         prevMouseButtonState = GLFW_PRESS;
     }
 
     for (int i = 0; i < numberOfButtons; i++)
     {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y
-            && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
         {
             switch (i)
             {
@@ -2015,7 +2060,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
             }
         }
     }
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && action == GLFW_RELEASE)
     {
         prevMouseButtonState = GLFW_RELEASE;
     }

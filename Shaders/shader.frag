@@ -39,6 +39,8 @@ layout(binding = 30) uniform sampler2D texSampler30;
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) flat in int id;
+layout(location = 3) flat in int firstFuncType;
+layout(location = 4) flat in int secondFuncType;
 
 layout(location = 0) out vec4 outColor;
 
@@ -80,23 +82,29 @@ void main() {
     } 
     else if (id == 12) {
         outColor = texture(texSampler12, fragTexCoord);
+    }
+    else if (id == 13 && firstFuncType == 0) {
+        outColor = texture(texSampler19, fragTexCoord);
     } 
-    else if (id == 13) {
+    else if (id == 13 && firstFuncType == 1) {
         outColor = texture(texSampler13, fragTexCoord);
     } 
-    else if (id == 14) {
+    else if (id == 13 && firstFuncType == 2) {
         outColor = texture(texSampler14, fragTexCoord);
     } 
-    else if (id == 15) {
+    else if (id == 13 && firstFuncType == 3) {
         outColor = texture(texSampler15, fragTexCoord);
+    }
+    else if (id == 16 && secondFuncType == 0) {
+        outColor = texture(texSampler19, fragTexCoord);
     } 
-    else if (id == 16) {
+    else if (id == 16 && secondFuncType == 1) {
         outColor = texture(texSampler16, fragTexCoord);
     } 
-    else if (id == 17) {
+    else if (id == 16 && secondFuncType == 2) {
         outColor = texture(texSampler17, fragTexCoord);
     } 
-    else if (id == 18) {
+    else if (id == 16 && secondFuncType == 3) {
         outColor = texture(texSampler18, fragTexCoord);
     } 
     else if (id == 19) {
@@ -122,17 +130,5 @@ void main() {
     } 
     else if (id == 26) {
         outColor = texture(texSampler26, fragTexCoord);
-    } 
-    else if (id == 27) {
-        outColor = texture(texSampler27, fragTexCoord);
-    } 
-    else if (id == 28) {
-        outColor = texture(texSampler28, fragTexCoord);
-    } 
-    else if (id == 29) {
-        outColor = texture(texSampler29, fragTexCoord);
-    } 
-    else if (id == 30) {
-        outColor = texture(texSampler30, fragTexCoord);
     }
 }
