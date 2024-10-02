@@ -23,6 +23,7 @@
 #include <set>
 #include <filesystem>
 #include <variant>
+#include <map>
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -59,6 +60,8 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
         func(instance, debugMessenger, pAllocator);
     }
 }
+
+
 
 struct QueueFamilyIndices
 {
@@ -150,17 +153,34 @@ std::vector<uint16_t> indices = {
 
 };
 
+// Funciton declerations (non validation layer)
+
 std::string findResourcePath(std::string pathP);
+void initializeKeys();
+
+// Mouse vars
 
 float mouseXpos, mouseYpos;
 float mouseXposNorm, mouseYposNorm;
 
-int windowWidth, windowHeight;
-
 int prevMouseButtonState = GLFW_RELEASE;
+
+
+// Keyboard vars
+
+std::map<int, const char*> allowedKeys;
+
+int prevKeyState = GLFW_RELEASE;
+
+// Window vars and CallBacks
+
+int windowWidth, windowHeight;
 
 void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+// Texture rendering vars
 
 constexpr int textureToCreate = 20;
 
@@ -171,8 +191,13 @@ std::vector<VkDeviceMemory> textureImageMemories(textureToCreate);
 std::vector<VkImageView> textureImageViews;
 std::vector<VkSampler> textureSamplers(textureToCreate);
 
+// Uniform buffer savers
+
 glm::mat4 uniformBufferProj;
 glm::mat4 uniformBufferView;
+
+// Button savers
+
 int numberOfButtons;
 std::vector<std::array<glm::vec4, 2>> buttonCoords;
 std::array<glm::vec4[2], 20> buttonNormCoords;
@@ -181,6 +206,15 @@ int firstFuncType{};
 int secondFuncType{};
 
 convertParams globalConverts;
+
+// Input box vars
+
+int numberOfInputBoxes;
+std::vector<std::array<glm::vec4, 2>> inputBoxCoords;
+std::array<glm::vec4[2], 20> inputBoxNormCoords;
+
+std::vector<bool> isInputBoxSelected = {false, false};
+
 
 class App
 {
@@ -285,6 +319,7 @@ private:
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
         glfwSetCursorPosCallback(window, cursorPositionCallback);
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
+        glfwSetKeyCallback(window, keyCallback);
     }
 
     static void framebufferResizeCallback(GLFWwindow *window, int width, int height)
@@ -337,6 +372,14 @@ private:
                 {
                     buttonNormCoords[i][j] = uniformBufferProj * uniformBufferView * buttonCoords[i][j];
                     buttonNormCoords[i][j] /= buttonNormCoords[i][j].w;
+                }
+            }
+            for (int i = 0; i < numberOfInputBoxes; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    inputBoxNormCoords[i][j] = uniformBufferProj * uniformBufferView * inputBoxCoords[i][j];
+                    inputBoxNormCoords[i][j] /= inputBoxNormCoords[i][j].w;
                 }
             }
         }
@@ -1765,8 +1808,11 @@ class displayObj
 public:
     float pos[2];
 
-    displayObj(const char *texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton)
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false)
     {
+        float firstPosAdder = 1.25f * fontSize;
+        float secondPosAdder = 0.5f * fontSize;
+
         texturePaths[textureIndex] = texturePathP;
 
         pos[0] = posP[0];
@@ -1781,9 +1827,6 @@ public:
             3,
             0,
         };
-
-        float firstPosAdder = 1.25f * fontSize;
-        float secondPosAdder = 0.5f * fontSize;
 
         for (int i = 0; i < 6; i++)
         {
@@ -1817,6 +1860,12 @@ public:
         {
             numberOfButtons++;
             buttonCoords.push_back({glm::vec4({pos[0], pos[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1})});
+        }
+        else if (isInputBox)
+        {
+            numberOfInputBoxes++;
+            inputBoxCoords.push_back({ glm::vec4({pos[0], pos[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1}) });
+            return;
         }
     }
 };
@@ -1909,6 +1958,8 @@ private:
 
 int main()
 {
+    initializeKeys();
+    /*
     std::string num1, num2;
 
     std::cin >> num1;
@@ -1919,7 +1970,7 @@ int main()
 
     const char *inputName1Chr = inputName1.c_str();
     const char *inputName2Chr = inputName2.c_str();
-
+    */
     int numberFontSize = 1;
     int buttonFontSize = 1;
     int inputFontSize = 1;
@@ -1939,8 +1990,14 @@ int main()
     displayObj input2("/Textures/n.png", {0.7f, 0.5f}, 8, inputFontSize, false);
     displayObj equ2("/Textures/equ.png", {-0.5f, 0.5f}, 9, simbolFontSize, false);
 
-    displayObj inputNum1(inputName1Chr, {-1.8f, -0.5f}, 10, numberFontSize, false);
-    displayObj inputNum2(inputName2Chr, {-1.8f, 0.5f}, 11, numberFontSize, false);
+
+
+    //displayObj inputNum1(inputName1Chr, {-1.8f, -0.5f}, 10, numberFontSize, false);
+    //displayObj inputNum2(inputName2Chr, {-1.8f, 0.5f}, 11, numberFontSize, false);
+    displayObj inputBox1("/Textures/empty.png", { -1.8f, -0.5f }, 10, numberFontSize, false, true);
+    displayObj inputBox2("/Textures/empty.png", { -1.8f, 0.5f }, 11, numberFontSize, false, true);
+
+
 
     displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 12, simbolFontSize, false);
     displayObj function2("/Textures/impFunc.png", { 2.0f, -20.0f }, 13, simbolFontSize, false);
@@ -1994,9 +2051,49 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
-
+        //std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
         //std::cout << firstFuncType << ", " << secondFuncType << std::endl << std::endl
+
+        for (int i = 0; i < numberOfButtons; i++)
+        {
+            if (mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
+            {
+                switch (i)
+                {
+                case 0:
+                    firstFuncType = 1;
+                    break;
+                case 1:
+                    firstFuncType = 2;
+                    break;
+                case 2:
+                    firstFuncType = 3;
+                    break;
+                case 3:
+                    secondFuncType = 1;
+                    break;
+                case 4:
+                    secondFuncType = 2;
+                    break;
+                case 5:
+                    secondFuncType = 3;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            }
+        }
+
+        for (int i = 0; i < numberOfInputBoxes; i++)
+        {
+            if (mouseXposNorm > inputBoxNormCoords[i][0].x && mouseYposNorm < inputBoxNormCoords[i][0].y && mouseYposNorm > inputBoxNormCoords[i][1].y && mouseXposNorm < inputBoxNormCoords[i][1].x)
+            {
+                isInputBoxSelected[i] = true;
+                std::cout << "Input box number " << i << " has been selected" << std::endl;
+                break;
+            }
+        }
 
         prevMouseButtonState = GLFW_PRESS;
     }
@@ -2031,37 +2128,43 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         prevMouseButtonState = GLFW_PRESS;
     }
 
-    for (int i = 0; i < numberOfButtons; i++)
-    {
-        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
-        {
-            switch (i)
-            {
-            case 0:
-                firstFuncType = 1;
-                break;
-            case 1:
-                firstFuncType = 2;
-                break;
-            case 2:
-                firstFuncType = 3;
-                break;
-            case 3:
-                secondFuncType = 1;
-                break;
-            case 4:
-                secondFuncType = 2;
-                break;
-            case 5:
-                secondFuncType = 3;
-                break;
-            default:
-                break;
-            }
-        }
-    }
     if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && action == GLFW_RELEASE)
     {
         prevMouseButtonState = GLFW_RELEASE;
     }
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (prevKeyState == GLFW_RELEASE)
+    {
+        if (allowedKeys.find(key) != allowedKeys.end()) {
+            std::cout << "You pressed key: " << allowedKeys[key] << "\n";
+        }
+
+        prevKeyState = GLFW_PRESS;
+    }
+
+    if (action == GLFW_RELEASE)
+    {
+        prevKeyState = GLFW_RELEASE;
+    }
+}
+
+void initializeKeys()
+{
+    allowedKeys[48] = "/Textures/zero.png";
+    allowedKeys[49] = "/Textures/one.png";
+    allowedKeys[50] = "/Textures/two.png";
+    allowedKeys[51] = "/Textures/three.png";
+    allowedKeys[52] = "/Textures/four.png";
+    allowedKeys[53] = "/Textures/five.png";
+    allowedKeys[54] = "/Textures/six.png";
+    allowedKeys[55] = "/Textures/seven.png";
+    allowedKeys[56] = "/Textures/eight.png";
+    allowedKeys[57] = "/Textures/nine.png";
+    allowedKeys[332] = "/Textures/mul.png";
+    allowedKeys[331] = "/Textures/dev.png";
+    allowedKeys[334] = "/Textures/add.png";
+    allowedKeys[333] = "/Textures/sub.png";
 }
