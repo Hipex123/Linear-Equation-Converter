@@ -7,7 +7,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -24,6 +23,9 @@
 #include <filesystem>
 #include <variant>
 #include <map>
+#include <cctype>
+#include <sstream>
+
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -168,8 +170,6 @@ int prevMouseButtonState = GLFW_RELEASE;
 
 // Keyboard vars
 
-std::map<int, const char*> allowedKeys;
-
 int prevKeyState = GLFW_RELEASE;
 
 // Window vars and CallBacks
@@ -213,7 +213,10 @@ int numberOfInputBoxes;
 std::vector<std::array<glm::vec4, 2>> inputBoxCoords;
 std::array<glm::vec4[2], 20> inputBoxNormCoords;
 
-std::vector<bool> isInputBoxSelected = {false, false};
+std::array<bool, 2> isInputBoxSelected = {false, false};
+
+std::string firstInputBoxInput = {};
+std::string secondInputBoxInput = {};
 
 
 class App
@@ -1807,8 +1810,9 @@ class displayObj
 {
 public:
     float pos[2];
+    float posSub[2];
 
-    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false)
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false, std::array<float, 2> posSub = { 0, 0 })
     {
         float firstPosAdder = 1.25f * fontSize;
         float secondPosAdder = 0.5f * fontSize;
@@ -1817,6 +1821,9 @@ public:
 
         pos[0] = posP[0];
         pos[1] = posP[1];
+
+        posSub[0] = posSub[0];
+        posSub[1] = posSub[1];
 
         int vertSize = vertices.size() / 4;
         uint16_t indicesTemplate[6] = {
@@ -1840,7 +1847,7 @@ public:
             switch (vertices.size() % 4)
             {
             case 0:
-                vertices.push_back({{pos[0], pos[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id});
+                vertices.push_back({{pos[0] + posSub[0], pos[1] - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id});
                 break;
             case 1:
                 vertices.push_back({{pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id});
@@ -1849,7 +1856,7 @@ public:
                 vertices.push_back({{pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id});
                 break;
             case 3:
-                vertices.push_back({{pos[0], pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id});
+                vertices.push_back({{pos[0] + posSub[0], pos[1] + secondPosAdder - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id});
                 break;
             default:
                 break;
@@ -1859,13 +1866,12 @@ public:
         if (isButton)
         {
             numberOfButtons++;
-            buttonCoords.push_back({glm::vec4({pos[0], pos[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1})});
+            buttonCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 })});
         }
         else if (isInputBox)
         {
             numberOfInputBoxes++;
-            inputBoxCoords.push_back({ glm::vec4({pos[0], pos[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1}) });
-            return;
+            inputBoxCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1}) });
         }
     }
 };
@@ -1956,21 +1962,95 @@ private:
     }
 };
 
+class Evaluator
+{
+public:
+    double eval(const std::string& expression)
+    {
+        try
+        {
+            std::string cleanedExpression = removeSpaces(expression);
+            std::istringstream stream(cleanedExpression);
+            return parseExpression(stream);
+        }
+        catch (const std::exception&)
+        {
+            return 0;
+        }
+    }
+
+private:
+    double parseExpression(std::istringstream& stream)
+    {
+        double result = parseTerm(stream);
+        while (true)
+        {
+            char op = stream.peek();
+            if (op == '+' || op == '-')
+            {
+                stream.get();
+                double nextTerm = parseTerm(stream);
+                result = (op == '+') ? result + nextTerm : result - nextTerm;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return result;
+    }
+
+    double parseTerm(std::istringstream& stream)
+    {
+        double result = parseFactor(stream);
+        while (true)
+        {
+            char op = stream.peek();
+            if (op == '*' || op == '/')
+            {
+                stream.get();
+                double nextFactor = parseFactor(stream);
+                result = (op == '*') ? result * nextFactor : result / nextFactor;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return result;
+    }
+
+    double parseFactor(std::istringstream& stream)
+    {
+        double result;
+        char c = stream.peek();
+        if (std::isdigit(c) || c == '-')
+        {
+            stream >> result;
+        }
+        else
+        {
+            throw std::runtime_error("Invalid expression");
+        }
+        return result;
+    }
+
+    std::string removeSpaces(const std::string& str)
+    {
+        std::string result;
+        for (char c : str)
+        {
+            if (!std::isspace(c))
+            {
+                result += c;
+            }
+        }
+        return result;
+    }
+};
+
 int main()
 {
-    initializeKeys();
-    /*
-    std::string num1, num2;
-
-    std::cin >> num1;
-    std::cin >> num2;
-
-    std::string inputName1 = "/Textures/" + num1 + ".png";
-    std::string inputName2 = "/Textures/" + num2 + ".png";
-
-    const char *inputName1Chr = inputName1.c_str();
-    const char *inputName2Chr = inputName2.c_str();
-    */
     int numberFontSize = 1;
     int buttonFontSize = 1;
     int inputFontSize = 1;
@@ -1984,19 +2064,15 @@ int main()
     displayObj button5("/Textures/implicit.png", {-3.0f, 0.0f}, 4, buttonFontSize, true);
     displayObj button6("/Textures/piecewise.png", {-3.0f, 1.0f}, 5, buttonFontSize, true);
 
-    displayObj input1("/Textures/m.png", {0.7f, -0.5f}, 6, inputFontSize, false);
+    displayObj input1("/Textures/m.png", {0.7f, -0.5f}, 6, simbolFontSize, false);
     displayObj equ1("/Textures/equ.png", {-0.5f, -0.5f}, 7, simbolFontSize, false);
 
-    displayObj input2("/Textures/n.png", {0.7f, 0.5f}, 8, inputFontSize, false);
+    displayObj input2("/Textures/n.png", {0.7f, 0.5f}, 8, simbolFontSize, false);
     displayObj equ2("/Textures/equ.png", {-0.5f, 0.5f}, 9, simbolFontSize, false);
 
 
-
-    //displayObj inputNum1(inputName1Chr, {-1.8f, -0.5f}, 10, numberFontSize, false);
-    //displayObj inputNum2(inputName2Chr, {-1.8f, 0.5f}, 11, numberFontSize, false);
-    displayObj inputBox1("/Textures/empty.png", { -1.8f, -0.5f }, 10, numberFontSize, false, true);
-    displayObj inputBox2("/Textures/empty.png", { -1.8f, 0.5f }, 11, numberFontSize, false, true);
-
+    displayObj inputBox1("/Textures/inputBox.png", { -1.8f, -0.5f }, 10, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox2("/Textures/inputBox.png", { -1.8f, 0.5f }, 11, inputFontSize, false, true, { 0.2f, 0.0f });
 
 
     displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 12, simbolFontSize, false);
@@ -2090,7 +2166,8 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
             if (mouseXposNorm > inputBoxNormCoords[i][0].x && mouseYposNorm < inputBoxNormCoords[i][0].y && mouseYposNorm > inputBoxNormCoords[i][1].y && mouseXposNorm < inputBoxNormCoords[i][1].x)
             {
                 isInputBoxSelected[i] = true;
-                std::cout << "Input box number " << i << " has been selected" << std::endl;
+                isInputBoxSelected[i-1] = false;
+                std::cout << "Input box number " << i << " has been selected and " << i-1 << " unselected." << std::endl;
                 break;
             }
         }
@@ -2138,8 +2215,53 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 {
     if (prevKeyState == GLFW_RELEASE)
     {
-        if (allowedKeys.find(key) != allowedKeys.end()) {
-            std::cout << "You pressed key: " << allowedKeys[key] << "\n";
+        if (48 <= key && key <= 57)
+        {
+            if (isInputBoxSelected[0])
+            {
+                firstInputBoxInput.push_back((char)key);
+                std::cout << firstInputBoxInput << "\n";
+            }
+            else if (isInputBoxSelected[1])
+            {
+                secondInputBoxInput.push_back((char)key);
+                std::cout << firstInputBoxInput << "\n";
+            }
+        }
+
+        if (isInputBoxSelected[0])
+        {
+            switch (key)
+            {
+            case 331: firstInputBoxInput.push_back('/'); break;
+            case 332: firstInputBoxInput.push_back('*'); break;
+            case 333: firstInputBoxInput.push_back('-'); break;
+            case 334: firstInputBoxInput.push_back('+'); break;
+            case 257:
+                Evaluator evalu;
+                std::cout << evalu.eval(firstInputBoxInput) << std::endl;
+                //delete &evalu;
+                break;
+            case 259: firstInputBoxInput.pop_back(); break;
+            default: break;
+            }
+        }
+        else if (isInputBoxSelected[1])
+        {
+            switch (key)
+            {
+            case 331: secondInputBoxInput.push_back('/'); break;
+            case 332: secondInputBoxInput.push_back('*'); break;
+            case 333: secondInputBoxInput.push_back('-'); break;
+            case 334: secondInputBoxInput.push_back('+'); break;
+            case 257:
+                Evaluator evalu;
+                std::cout << evalu.eval(secondInputBoxInput) << std::endl;
+                //delete &evalu;
+                break;
+            case 259: secondInputBoxInput.pop_back(); break;
+            default: break;
+            }
         }
 
         prevKeyState = GLFW_PRESS;
@@ -2149,22 +2271,4 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
     {
         prevKeyState = GLFW_RELEASE;
     }
-}
-
-void initializeKeys()
-{
-    allowedKeys[48] = "/Textures/zero.png";
-    allowedKeys[49] = "/Textures/one.png";
-    allowedKeys[50] = "/Textures/two.png";
-    allowedKeys[51] = "/Textures/three.png";
-    allowedKeys[52] = "/Textures/four.png";
-    allowedKeys[53] = "/Textures/five.png";
-    allowedKeys[54] = "/Textures/six.png";
-    allowedKeys[55] = "/Textures/seven.png";
-    allowedKeys[56] = "/Textures/eight.png";
-    allowedKeys[57] = "/Textures/nine.png";
-    allowedKeys[332] = "/Textures/mul.png";
-    allowedKeys[331] = "/Textures/dev.png";
-    allowedKeys[334] = "/Textures/add.png";
-    allowedKeys[333] = "/Textures/sub.png";
 }
