@@ -182,7 +182,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 // Texture rendering vars
 
-constexpr int textureToCreate = 20;
+constexpr int textureToCreate = 32;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -213,10 +213,9 @@ int numberOfInputBoxes;
 std::vector<std::array<glm::vec4, 2>> inputBoxCoords;
 std::array<glm::vec4[2], 20> inputBoxNormCoords;
 
-std::array<bool, 2> isInputBoxSelected = {false, false};
+std::array<bool, 3> isInputBoxSelected = {false, false, false};
 
-std::string firstInputBoxInput = {};
-std::string secondInputBoxInput = {};
+std::array<std::string, 3> inputBoxes = { "", "", ""  };
 
 
 class App
@@ -2056,6 +2055,8 @@ int main()
     int inputFontSize = 1;
     int simbolFontSize = 1;
 
+    // Buttons
+
     displayObj button1("/Textures/explicit.png", {2.0f, -1.00f}, 0, buttonFontSize, true);
     displayObj button2("/Textures/implicit.png", {2.0f, 0.0f}, 1, buttonFontSize, true);
     displayObj button3("/Textures/piecewise.png", {2.0f, 1.0f}, 2, buttonFontSize, true);
@@ -2064,28 +2065,52 @@ int main()
     displayObj button5("/Textures/implicit.png", {-3.0f, 0.0f}, 4, buttonFontSize, true);
     displayObj button6("/Textures/piecewise.png", {-3.0f, 1.0f}, 5, buttonFontSize, true);
 
-    displayObj input1("/Textures/m.png", {0.7f, -0.5f}, 6, simbolFontSize, false);
-    displayObj equ1("/Textures/equ.png", {-0.5f, -0.5f}, 7, simbolFontSize, false);
+    //Input displays
 
-    displayObj input2("/Textures/n.png", {0.7f, 0.5f}, 8, simbolFontSize, false);
-    displayObj equ2("/Textures/equ.png", {-0.5f, 0.5f}, 9, simbolFontSize, false);
+    displayObj valueRepresent1("/Textures/empty.png", { 0.7f, -1.0f }, 6, simbolFontSize);
+    displayObj equ1("/Textures/empty.png", { -0.5f, -1.0f }, 7, simbolFontSize);
 
+    displayObj valueRepresent2("/Textures/empty.png", {0.7f, 0.0f}, 8, simbolFontSize);
+    displayObj equ2("/Textures/empty.png", {-0.5f, 0.0f}, 9, simbolFontSize);
 
-    displayObj inputBox1("/Textures/inputBox.png", { -1.8f, -0.5f }, 10, inputFontSize, false, true, { 0.2f, 0.0f });
-    displayObj inputBox2("/Textures/inputBox.png", { -1.8f, 0.5f }, 11, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj valueRepresent3("/Textures/empty.png", {0.7f, 1.0f}, 10, simbolFontSize);
+    displayObj equ3("/Textures/empty.png", {-0.5f, 1.0f}, 11, simbolFontSize);
 
+    displayObj inputBox1("/Textures/empty.png", { -1.8f, -1.0f }, 12, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox2("/Textures/empty.png", { -1.8f, 0.0f }, 13, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox3("/Textures/empty.png", { -1.8f, 1.0f }, 14, inputFontSize, false, true, { 0.2f, 0.0f });
 
-    displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 12, simbolFontSize, false);
-    displayObj function2("/Textures/impFunc.png", { 2.0f, -20.0f }, 13, simbolFontSize, false);
-    displayObj function3("/Textures/pcwFunc.png", { 2.0f, -20.0f }, 14, simbolFontSize, false);
+    // Buttons for mode selection
 
-    displayObj function4("/Textures/expFunc.png", { -3.0f, -2.0f }, 15, simbolFontSize, false);
-    displayObj function5("/Textures/impFunc.png", { -3.0f, -20.0f }, 16, simbolFontSize, false);
-    displayObj function6("/Textures/pcwFunc.png", { -3.0f, -20.0f }, 17, simbolFontSize, false);
+    displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 15, simbolFontSize);
+    displayObj function2("/Textures/impFunc.png", { 2.0f, -20.0f }, 16, simbolFontSize);
+    displayObj function3("/Textures/pcwFunc.png", { 2.0f, -20.0f }, 17, simbolFontSize);
 
-    displayObj empty("/Textures/empty.png", { -3.0f, -20.0f }, 18, simbolFontSize, false);
+    displayObj function4("/Textures/expFunc.png", { -3.0f, -2.0f }, 18, simbolFontSize);
+    displayObj function5("/Textures/impFunc.png", { -3.0f, -20.0f }, 19, simbolFontSize);
+    displayObj function6("/Textures/pcwFunc.png", { -3.0f, -20.0f }, 20, simbolFontSize);
 
-    displayObj arrow("/Textures/arrow.png", { -0.5f, -2.0f }, 19, simbolFontSize, false);
+    // Simbols
+
+    displayObj empty("/Textures/empty.png", { -3.0f, -20.0f }, 21, simbolFontSize);
+
+    displayObj arrow("/Textures/arrow.png", { -0.5f, -2.0f }, 22, simbolFontSize);
+
+    // Submit button
+
+    displayObj submitButton("/Textures/convert.png", { -0.5f, 1.5f }, 23, buttonFontSize, true);
+
+    // Textures to load
+
+    displayObj load1("/Textures/k.png", { -2.0f, -20.0f }, 24, simbolFontSize);
+    displayObj load2("/Textures/m.png", { -2.0f, -20.0f }, 25, simbolFontSize);
+    displayObj load3("/Textures/n.png", { -2.0f, -20.0f }, 26, simbolFontSize);
+    displayObj load4("/Textures/a.png", { -2.0f, -20.0f }, 27, simbolFontSize);
+    displayObj load5("/Textures/b.png", { -2.0f, -20.0f }, 28, simbolFontSize);
+    displayObj load6("/Textures/c.png", { -2.0f, -20.0f }, 29, simbolFontSize);
+    displayObj load7("/Textures/equ.png", { -2.0f, -20.0f }, 30, simbolFontSize);
+    displayObj load8("/Textures/inputBox.png", { -2.0f, -20.0f }, 31, simbolFontSize);
+   
 
     App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
@@ -2127,13 +2152,15 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        //std::cout << "MOUSE: " << mouseXposNorm << ", " << mouseYposNorm << std::endl;
-        //std::cout << firstFuncType << ", " << secondFuncType << std::endl << std::endl
-
         for (int i = 0; i < numberOfButtons; i++)
         {
             if (mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
             {
+                for (std::string& input : inputBoxes)
+                {
+                    input = "";
+                }
+
                 switch (i)
                 {
                 case 0:
@@ -2154,6 +2181,8 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 case 5:
                     secondFuncType = 3;
                     break;
+                case 6:
+                    std::cout << 1;
                 default:
                     break;
                 }
@@ -2165,9 +2194,12 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         {
             if (mouseXposNorm > inputBoxNormCoords[i][0].x && mouseYposNorm < inputBoxNormCoords[i][0].y && mouseYposNorm > inputBoxNormCoords[i][1].y && mouseXposNorm < inputBoxNormCoords[i][1].x)
             {
+                if (firstFuncType == 0) { break; }
+                if (firstFuncType != 2 && i == 2) { break; }
+
+                std::fill(isInputBoxSelected.begin(), isInputBoxSelected.end(), false);
                 isInputBoxSelected[i] = true;
-                isInputBoxSelected[i-1] = false;
-                std::cout << "Input box number " << i << " has been selected and " << i-1 << " unselected." << std::endl;
+
                 break;
             }
         }
@@ -2215,52 +2247,42 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 {
     if (prevKeyState == GLFW_RELEASE)
     {
+        // Numbers
+
         if (48 <= key && key <= 57)
         {
-            if (isInputBoxSelected[0])
+            for (int i = 0; i < numberOfInputBoxes; i++)
             {
-                firstInputBoxInput.push_back((char)key);
-                std::cout << firstInputBoxInput << "\n";
-            }
-            else if (isInputBoxSelected[1])
-            {
-                secondInputBoxInput.push_back((char)key);
-                std::cout << firstInputBoxInput << "\n";
+                if (isInputBoxSelected[i])
+                {
+                    inputBoxes[i].push_back((char)key);
+                    std::cout << inputBoxes[i] << "\n";
+                    break;
+                }
             }
         }
 
-        if (isInputBoxSelected[0])
+        // Special characters
+
+        for (int i = 0; i < numberOfInputBoxes; i++)
         {
-            switch (key)
+            if (isInputBoxSelected[i])
             {
-            case 331: firstInputBoxInput.push_back('/'); break;
-            case 332: firstInputBoxInput.push_back('*'); break;
-            case 333: firstInputBoxInput.push_back('-'); break;
-            case 334: firstInputBoxInput.push_back('+'); break;
-            case 257:
-                Evaluator evalu;
-                std::cout << evalu.eval(firstInputBoxInput) << std::endl;
-                //delete &evalu;
+                switch (key)
+                {
+                case 331: inputBoxes[i].push_back('/'); break;
+                case 332: inputBoxes[i].push_back('*'); break;
+                case 333: inputBoxes[i].push_back('-'); break;
+                case 334: inputBoxes[i].push_back('+'); break;
+                case 257:
+                    Evaluator evalu;
+                    std::cout << evalu.eval(inputBoxes[i]) << std::endl;
+                    break;
+                case 259: inputBoxes[i].pop_back(); break;
+                default: break;
+                }
+
                 break;
-            case 259: firstInputBoxInput.pop_back(); break;
-            default: break;
-            }
-        }
-        else if (isInputBoxSelected[1])
-        {
-            switch (key)
-            {
-            case 331: secondInputBoxInput.push_back('/'); break;
-            case 332: secondInputBoxInput.push_back('*'); break;
-            case 333: secondInputBoxInput.push_back('-'); break;
-            case 334: secondInputBoxInput.push_back('+'); break;
-            case 257:
-                Evaluator evalu;
-                std::cout << evalu.eval(secondInputBoxInput) << std::endl;
-                //delete &evalu;
-                break;
-            case 259: secondInputBoxInput.pop_back(); break;
-            default: break;
             }
         }
 
