@@ -44,6 +44,7 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) flat in int id;
 layout(location = 3) flat in int firstFuncType;
 layout(location = 4) flat in int secondFuncType;
+layout(location = 5) flat in int wasConverted;
 
 layout(location = 0) out vec4 outColor;
 
@@ -73,13 +74,23 @@ void main() {
     else if (id == 7 && firstFuncType == 0) {
         outColor = texture(texSampler7, fragTexCoord);
     }
-    else if (id == 7 && firstFuncType == 1) {
+    else if (id == 7 && firstFuncType == 1 && wasConverted == 0) {
         outColor = texture(texSampler25, fragTexCoord);
     }
-    else if (id == 7 && firstFuncType == 2) {
+    else if (id == 7 && firstFuncType == 2 && wasConverted == 0) {
         outColor = texture(texSampler28, fragTexCoord);
     }
-    else if (id == 7 && firstFuncType == 3) {
+    else if (id == 7 && firstFuncType == 3 && wasConverted == 0) {
+        outColor = texture(texSampler26, fragTexCoord);
+    }
+
+    else if (id == 7 && secondFuncType == 1 && wasConverted == 1) {
+        outColor = texture(texSampler25, fragTexCoord);
+    }
+    else if (id == 7 && secondFuncType == 2 && wasConverted == 1) {
+        outColor = texture(texSampler28, fragTexCoord);
+    }
+    else if (id == 7 && secondFuncType == 3 && wasConverted == 1) {
         outColor = texture(texSampler26, fragTexCoord);
     }
 
@@ -87,21 +98,31 @@ void main() {
     else if (id == 8 && firstFuncType == 0) {
         outColor = texture(texSampler8, fragTexCoord);
     }
-    else if (id == 8 && (firstFuncType == 1 || firstFuncType == 2 || firstFuncType == 3)) {
+    else if (id == 8 && firstFuncType != 0) {
         outColor = texture(texSampler31, fragTexCoord);
     }
 
 
-    else if (id == 9 && firstFuncType == 0) {
+    else if (id == 9 && firstFuncType == 0 && wasConverted == 0) {
         outColor = texture(texSampler9, fragTexCoord);
     } 
-    else if (id == 9 && firstFuncType == 1) {
+    else if (id == 9 && firstFuncType == 1 && wasConverted == 0) {
         outColor = texture(texSampler27, fragTexCoord);
     }
-    else if (id == 9 && firstFuncType == 2) {
+    else if (id == 9 && firstFuncType == 2 && wasConverted == 0) {
         outColor = texture(texSampler29, fragTexCoord);
     }
-    else if (id == 9 && firstFuncType == 3) {
+    else if (id == 9 && firstFuncType == 3 && wasConverted == 0) {
+        outColor = texture(texSampler27, fragTexCoord);
+    }
+
+    else if (id == 9 && secondFuncType == 1 && wasConverted == 1) {
+        outColor = texture(texSampler27, fragTexCoord);
+    }
+    else if (id == 9 && secondFuncType == 2 && wasConverted == 1) {
+        outColor = texture(texSampler29, fragTexCoord);
+    }
+    else if (id == 9 && secondFuncType == 3 && wasConverted == 1) {
         outColor = texture(texSampler27, fragTexCoord);
     }
 
@@ -109,29 +130,49 @@ void main() {
     else if (id == 10 && firstFuncType == 0) {
         outColor = texture(texSampler10, fragTexCoord);
     }
-    else if (id == 10 && (firstFuncType == 1 || firstFuncType == 2 || firstFuncType == 3)) {
+    else if (id == 10 && firstFuncType != 0) {
         outColor = texture(texSampler31, fragTexCoord);
     }
 
 
-    else if (id == 11 && firstFuncType == 0) {
+    else if (id == 11 && firstFuncType == 0 && wasConverted == 0) {
         outColor = texture(texSampler11, fragTexCoord);
     }
-    else if (id == 11 && firstFuncType == 1) {
+    else if (id == 11 && firstFuncType == 1 && wasConverted == 0) {
         outColor = texture(texSampler11, fragTexCoord);
     }
-    else if (id == 11 && firstFuncType == 2) {
+    else if (id == 11 && firstFuncType == 2 && wasConverted == 0) {
         outColor = texture(texSampler30, fragTexCoord);
     }
-    else if (id == 11 && firstFuncType == 3) {
+    else if (id == 11 && firstFuncType == 3 && wasConverted == 0) {
+        outColor = texture(texSampler11, fragTexCoord);
+    }
+
+    else if (id == 11 && secondFuncType == 1 && wasConverted == 1) {
+        outColor = texture(texSampler11, fragTexCoord);
+    }
+    else if (id == 11 && secondFuncType == 2 && wasConverted == 1) {
+        outColor = texture(texSampler30, fragTexCoord);
+    }
+    else if (id == 11 && secondFuncType == 3 && wasConverted == 1) {
         outColor = texture(texSampler11, fragTexCoord);
     }
 
 
-    else if (id == 12 && (firstFuncType == 0 || firstFuncType == 1 || firstFuncType == 3)) {
+    else if (id == 12 && firstFuncType != 2 && wasConverted == 0) {
         outColor = texture(texSampler12, fragTexCoord);
     }
-    else if (id == 12 && firstFuncType == 2) {
+    else if (id == 12 && firstFuncType == 2 && wasConverted == 0) {
+        outColor = texture(texSampler31, fragTexCoord);
+    }
+    else if (id == 12 && firstFuncType != 2 && wasConverted == 1 && secondFuncType != 2) {
+        outColor = texture(texSampler12, fragTexCoord);
+    }
+    else if (id == 12 && firstFuncType == 2 && wasConverted == 1) {
+        outColor = texture(texSampler12, fragTexCoord);
+    }
+
+    else if (id == 12 && secondFuncType == 2 && wasConverted == 1) {
         outColor = texture(texSampler31, fragTexCoord);
     }
 
@@ -139,7 +180,7 @@ void main() {
     else if (id == 13 && firstFuncType == 0) {
         outColor = texture(texSampler13, fragTexCoord);
     }
-    else if (id == 13 && (firstFuncType == 1 || firstFuncType == 2 || firstFuncType == 3)) {
+    else if (id == 13 && firstFuncType != 0) {
         outColor = texture(texSampler32, fragTexCoord);
     }
 
@@ -147,15 +188,25 @@ void main() {
     else if (id == 14 && firstFuncType == 0) {
         outColor = texture(texSampler14, fragTexCoord);
     }
-    else if (id == 14 && (firstFuncType == 1 || firstFuncType == 2 || firstFuncType == 3)) {
+    else if (id == 14 && firstFuncType != 0) {
         outColor = texture(texSampler32, fragTexCoord);
     }
 
 
-    else if (id == 15 && (firstFuncType == 0 || firstFuncType == 1 || firstFuncType == 3)) {
+    else if (id == 15 && firstFuncType != 2 && wasConverted == 0) {
         outColor = texture(texSampler15, fragTexCoord);
     }
-    else if (id == 15 && firstFuncType == 2) {
+    else if (id == 15 && firstFuncType == 2 && wasConverted == 0) {
+        outColor = texture(texSampler32, fragTexCoord);
+    }
+    else if (id == 15 && firstFuncType != 2 && wasConverted == 1 && secondFuncType != 2) {
+        outColor = texture(texSampler15, fragTexCoord);
+    }
+    else if (id == 15 && firstFuncType == 2 && wasConverted == 1) {
+        outColor = texture(texSampler15, fragTexCoord);
+    }
+
+    else if (id == 15 && secondFuncType == 2 && wasConverted == 1) {
         outColor = texture(texSampler32, fragTexCoord);
     }
 

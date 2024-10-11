@@ -135,6 +135,7 @@ struct UniformBufferObject
     alignas(16) glm::mat4 proj;
     alignas(4) int firstFuncType;
     alignas(4) int secondFuncType;
+    alignas(4) int wasConverted;
 };
 
 struct convertParams
@@ -204,6 +205,8 @@ std::array<glm::vec4[2], 20> buttonNormCoords;
 
 int firstFuncType{};
 int secondFuncType{};
+
+int wasConverted = 0;
 
 convertParams globalConverts;
 
@@ -1494,6 +1497,8 @@ private:
         ubo.firstFuncType = firstFuncType;
         ubo.secondFuncType = secondFuncType;
 
+        ubo.wasConverted = wasConverted;
+
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
 
@@ -2161,6 +2166,8 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                     input = "";
                 }
 
+                wasConverted = 0;
+
                 switch (i)
                 {
                 case 0:
@@ -2182,7 +2189,11 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                     secondFuncType = 3;
                     break;
                 case 6:
-                    std::cout << 1;
+                    if ((firstFuncType != 0 && secondFuncType != 0) && firstFuncType != secondFuncType)
+                    {
+                        wasConverted = 1;
+                    }
+                    break;
                 default:
                     break;
                 }
@@ -2245,7 +2256,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (prevKeyState == GLFW_RELEASE)
+    if (prevKeyState == GLFW_RELEASE && wasConverted == 0)
     {
         // Numbers
 
