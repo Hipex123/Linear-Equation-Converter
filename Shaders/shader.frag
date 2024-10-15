@@ -38,6 +38,28 @@ layout(binding = 30) uniform sampler2D texSampler30;
 
 layout(binding = 31) uniform sampler2D texSampler31;
 layout(binding = 32) uniform sampler2D texSampler32;
+layout(binding = 33) uniform sampler2D texSampler33;
+layout(binding = 34) uniform sampler2D texSampler34;
+layout(binding = 35) uniform sampler2D texSampler35;
+
+layout(binding = 36) uniform sampler2D texSampler36;
+layout(binding = 37) uniform sampler2D texSampler37;
+layout(binding = 38) uniform sampler2D texSampler38;
+layout(binding = 39) uniform sampler2D texSampler39;
+layout(binding = 40) uniform sampler2D texSampler40;
+
+layout(binding = 41) uniform sampler2D texSampler41;
+layout(binding = 42) uniform sampler2D texSampler42;
+layout(binding = 43) uniform sampler2D texSampler43;
+layout(binding = 44) uniform sampler2D texSampler44;
+layout(binding = 45) uniform sampler2D texSampler45;
+
+layout(binding = 46) uniform sampler2D texSampler46;
+layout(binding = 47) uniform sampler2D texSampler47;
+layout(binding = 48) uniform sampler2D texSampler48;
+layout(binding = 49) uniform sampler2D texSampler49;
+layout(binding = 50) uniform sampler2D texSampler50;
+
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
@@ -261,5 +283,74 @@ void main() {
     }
     else if (id == 27) {
         outColor = texture(texSampler27, fragTexCoord);
+    }
+    if (id == 28) {
+    outColor = texture(texSampler28, fragTexCoord);
+    }
+    else if (id == 29) {
+        outColor = texture(texSampler29, fragTexCoord);
+    }
+    else if (id == 30) {
+        outColor = texture(texSampler30, fragTexCoord);
+    }
+    else if (id == 31) {
+        outColor = texture(texSampler31, fragTexCoord);
+    }
+    else if (id == 32) {
+        outColor = texture(texSampler32, fragTexCoord);
+    }
+    else if (id == 33) {
+        outColor = texture(texSampler33, fragTexCoord);
+    }
+    else if (id == 34) {
+        outColor = texture(texSampler34, fragTexCoord);
+    }
+    else if (id == 35) {
+        outColor = texture(texSampler35, fragTexCoord);
+    }
+    else if (id == 36) {
+        outColor = texture(texSampler36, fragTexCoord);
+    }
+    else if (id == 37) {
+        outColor = texture(texSampler37, fragTexCoord);
+    }
+    else if (id == 38) {
+        outColor = texture(texSampler38, fragTexCoord);
+    }
+    else if (id == 39) {
+        outColor = texture(texSampler39, fragTexCoord);
+    }
+    else if (id == 40) {
+        outColor = texture(texSampler40, fragTexCoord);
+    }
+    else if (id == 41) {
+        outColor = texture(texSampler41, fragTexCoord);
+    }
+    else if (id == 42) {
+        outColor = texture(texSampler42, fragTexCoord);
+    }
+    else if (id == 43) {
+        outColor = texture(texSampler43, fragTexCoord);
+    }
+    else if (id == 44) {
+        outColor = texture(texSampler44, fragTexCoord);
+    }
+    else if (id == 45) {
+        outColor = texture(texSampler45, fragTexCoord);
+    }
+    else if (id == 46) {
+        outColor = texture(texSampler46, fragTexCoord);
+    }
+    else if (id == 47) {
+        outColor = texture(texSampler47, fragTexCoord);
+    }
+    else if (id == 48) {
+        outColor = texture(texSampler48, fragTexCoord);
+    }
+    else if (id == 49) {
+        outColor = texture(texSampler49, fragTexCoord);
+    }
+    else if (id == 50) {
+        outColor = texture(texSampler50, fragTexCoord);
     }
 }

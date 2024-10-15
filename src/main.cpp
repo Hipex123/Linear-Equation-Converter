@@ -183,7 +183,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 // Texture rendering vars
 
-constexpr int textureToCreate = 32;
+constexpr int textureToCreate = 37;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -1816,66 +1816,70 @@ public:
     float pos[2];
     float posSub[2];
 
-    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false, std::array<float, 2> posSub = { 0, 0 })
+    displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false
+        , std::array<float, 2> posSub = { 0, 0 }, int decimalPlaces = 0)
     {
-        float firstPosAdder = 1.25f * fontSize;
-        float secondPosAdder = 0.5f * fontSize;
-
-        texturePaths[textureIndex] = texturePathP;
-
-        pos[0] = posP[0];
-        pos[1] = posP[1];
-
-        posSub[0] = posSub[0];
-        posSub[1] = posSub[1];
-
-        int vertSize = vertices.size() / 4;
-        uint16_t indicesTemplate[6] = {
-            0,
-            1,
-            2,
-            2,
-            3,
-            0,
-        };
-
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < decimalPlaces+1; i++)
         {
-            indices.push_back(indicesTemplate[i] + (vertSize * 4));
-        }
+            float firstPosAdder = 1.25f * fontSize;
+            float secondPosAdder = 0.5f * fontSize;
 
-        for (int i = 0; i < 4; i++)
-        {
-            int id = (vertices.size() / 4) + 1;
+            texturePaths[textureIndex+i] = texturePathP;
 
-            switch (vertices.size() % 4)
+            pos[0] = posP[0]-(i/1.9);
+            pos[1] = posP[1];
+
+            posSub[0] = posSub[0];
+            posSub[1] = posSub[1];
+
+            int vertSize = vertices.size() / 4;
+            uint16_t indicesTemplate[6] = {
+                0,
+                1,
+                2,
+                2,
+                3,
+                0,
+            };
+
+            for (int j = 0; j < 6; j++)
             {
-            case 0:
-                vertices.push_back({{pos[0] + posSub[0], pos[1] - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id});
-                break;
-            case 1:
-                vertices.push_back({{pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id});
-                break;
-            case 2:
-                vertices.push_back({{pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id});
-                break;
-            case 3:
-                vertices.push_back({{pos[0] + posSub[0], pos[1] + secondPosAdder - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id});
-                break;
-            default:
-                break;
+                indices.push_back(indicesTemplate[j] + (vertSize * 4));
             }
-        }
 
-        if (isButton)
-        {
-            numberOfButtons++;
-            buttonCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 })});
-        }
-        else if (isInputBox)
-        {
-            numberOfInputBoxes++;
-            inputBoxCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1}) });
+            for (int j = 0; j < 4; j++)
+            {
+                int id = (vertices.size() / 4) + 1;
+
+                switch (vertices.size() % 4)
+                {
+                case 0:
+                    vertices.push_back({ {pos[0] + posSub[0], pos[1] - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}, id });
+                    break;
+                case 1:
+                    vertices.push_back({ {pos[0] + firstPosAdder, pos[1]}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}, id });
+                    break;
+                case 2:
+                    vertices.push_back({ {pos[0] + firstPosAdder, pos[1] + secondPosAdder}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, id });
+                    break;
+                case 3:
+                    vertices.push_back({ {pos[0] + posSub[0], pos[1] + secondPosAdder - posSub[1]}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, id });
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (isButton)
+            {
+                numberOfButtons++;
+                buttonCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1 }) });
+            }
+            else if (isInputBox)
+            {
+                numberOfInputBoxes++;
+                inputBoxCoords.push_back({ glm::vec4({pos[0] + posSub[0], pos[1] - posSub[1], 0, 1}), glm::vec4({pos[0] + firstPosAdder, pos[1] + secondPosAdder, 0, 1}) });
+            }
         }
     }
 };
@@ -2062,48 +2066,47 @@ int main()
 
     // Buttons
 
-    displayObj button1("/Textures/explicit.png", {2.0f, -1.00f}, 0, buttonFontSize, true);
-    displayObj button2("/Textures/implicit.png", {2.0f, 0.0f}, 1, buttonFontSize, true);
-    displayObj button3("/Textures/piecewise.png", {2.0f, 1.0f}, 2, buttonFontSize, true);
+    displayObj button1("/Textures/explicit.png", { 3.3f, -1.00f }, 0, buttonFontSize, true);
+    displayObj button2("/Textures/implicit.png", { 3.3f, 0.0f }, 1, buttonFontSize, true);
+    displayObj button3("/Textures/piecewise.png", { 3.3f, 1.0f }, 2, buttonFontSize, true);
 
-    displayObj button4("/Textures/explicit.png", {-3.0f, -1.00f}, 3, buttonFontSize, true);
-    displayObj button5("/Textures/implicit.png", {-3.0f, 0.0f}, 4, buttonFontSize, true);
-    displayObj button6("/Textures/piecewise.png", {-3.0f, 1.0f}, 5, buttonFontSize, true);
+    displayObj button4("/Textures/explicit.png", { -3.5f, -1.00f }, 3, buttonFontSize, true);
+    displayObj button5("/Textures/implicit.png", { -3.5f, 0.0f }, 4, buttonFontSize, true);
+    displayObj button6("/Textures/piecewise.png", { -3.5f, 1.0f }, 5, buttonFontSize, true);
 
     //Input displays
 
-    displayObj valueRepresent1("/Textures/empty.png", { 0.7f, -1.0f }, 6, simbolFontSize);
-    displayObj equ1("/Textures/empty.png", { -0.5f, -1.0f }, 7, simbolFontSize);
+    displayObj valueRepresent1("/Textures/empty.png", { 2.0f, -1.0f }, 6, simbolFontSize);
+    displayObj equ1("/Textures/empty.png", { 0.8f, -1.0f }, 7, simbolFontSize);
 
-    displayObj valueRepresent2("/Textures/empty.png", {0.7f, 0.0f}, 8, simbolFontSize);
-    displayObj equ2("/Textures/empty.png", {-0.5f, 0.0f}, 9, simbolFontSize);
+    displayObj valueRepresent2("/Textures/empty.png", { 2.0f, 0.0f }, 8, simbolFontSize);
+    displayObj equ2("/Textures/empty.png", { 0.8f, 0.0f }, 9, simbolFontSize);
 
-    displayObj valueRepresent3("/Textures/empty.png", {0.7f, 1.0f}, 10, simbolFontSize);
-    displayObj equ3("/Textures/empty.png", {-0.5f, 1.0f}, 11, simbolFontSize);
+    displayObj valueRepresent3("/Textures/empty.png", { 2.0f, 1.0f }, 10, simbolFontSize);
+    displayObj equ3("/Textures/empty.png", { 0.8f, 1.0f }, 11, simbolFontSize);
 
-    displayObj inputBox1("/Textures/empty.png", { -1.8f, -1.0f }, 12, inputFontSize, false, true, { 0.2f, 0.0f });
-    displayObj inputBox2("/Textures/empty.png", { -1.8f, 0.0f }, 13, inputFontSize, false, true, { 0.2f, 0.0f });
-    displayObj inputBox3("/Textures/empty.png", { -1.8f, 1.0f }, 14, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox1("/Textures/empty.png", { -0.5f, -1.0f }, 12, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox2("/Textures/empty.png", { -0.5f, 0.0f }, 13, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox3("/Textures/empty.png", { -0.5f, 1.0f }, 14, inputFontSize, false, true, { 0.2f, 0.0f });
 
-    // Buttons for mode selection
+    // Mode displays
 
-    displayObj function1("/Textures/expFunc.png", { 2.0f, -2.0f }, 15, simbolFontSize);
-    displayObj function2("/Textures/impFunc.png", { 2.0f, -20.0f }, 16, simbolFontSize);
-    displayObj function3("/Textures/pcwFunc.png", { 2.0f, -20.0f }, 17, simbolFontSize);
+    displayObj function1("/Textures/expFunc.png", { 3.3f, -2.0f }, 15, simbolFontSize);
+    displayObj function2("/Textures/impFunc.png", { 3.3f, -20.0f }, 16, simbolFontSize);
+    displayObj function3("/Textures/pcwFunc.png", { 3.3f, -20.0f }, 17, simbolFontSize);
 
-    displayObj function4("/Textures/expFunc.png", { -3.0f, -2.0f }, 18, simbolFontSize);
-    displayObj function5("/Textures/impFunc.png", { -3.0f, -20.0f }, 19, simbolFontSize);
-    displayObj function6("/Textures/pcwFunc.png", { -3.0f, -20.0f }, 20, simbolFontSize);
+    displayObj function4("/Textures/expFunc.png", { -3.5f, -2.0f }, 18, simbolFontSize);
+    displayObj function5("/Textures/impFunc.png", { -3.5f, -20.0f }, 19, simbolFontSize);
+    displayObj function6("/Textures/pcwFunc.png", { -3.5f, -20.0f }, 20, simbolFontSize);
 
     // Simbols
 
     displayObj empty("/Textures/empty.png", { -3.0f, -20.0f }, 21, simbolFontSize);
-
-    displayObj arrow("/Textures/arrow.png", { -0.5f, -2.0f }, 22, simbolFontSize);
+    displayObj arrow("/Textures/arrow.png", { -0.1f, -2.0f }, 22, simbolFontSize);
 
     // Submit button
 
-    displayObj submitButton("/Textures/convert.png", { -0.5f, 1.5f }, 23, buttonFontSize, true);
+    displayObj submitButton("/Textures/convert.png", { -0.1f, 1.5f }, 23, buttonFontSize, true);
 
     // Textures to load
 
@@ -2115,10 +2118,14 @@ int main()
     displayObj load6("/Textures/c.png", { -2.0f, -20.0f }, 29, simbolFontSize);
     displayObj load7("/Textures/equ.png", { -2.0f, -20.0f }, 30, simbolFontSize);
     displayObj load8("/Textures/inputBox.png", { -2.0f, -20.0f }, 31, simbolFontSize);
+
+    // Number placeholders
+
+    displayObj numberHolder1("/Textures/add.png", { -0.5f, -1.5f }, 32, simbolFontSize, false, false, {0.5,0}, 4);
    
 
-    App app("App", 500, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 0.1f, 30.0f);
+    App app("App", 1400, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, 1.0f, 30.0f);
 
     try
     {
@@ -2157,6 +2164,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        // std::cout << mouseXposNorm << ", " << mouseYposNorm << std::endl;
         for (int i = 0; i < numberOfButtons; i++)
         {
             if (mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
