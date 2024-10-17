@@ -183,7 +183,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 // Texture rendering vars
 
-constexpr int textureToCreate = 37;
+constexpr int textureToCreate = 47;
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -2085,9 +2085,9 @@ int main()
     displayObj valueRepresent3("/Textures/empty.png", { 2.0f, 1.0f }, 10, simbolFontSize);
     displayObj equ3("/Textures/empty.png", { 0.8f, 1.0f }, 11, simbolFontSize);
 
-    displayObj inputBox1("/Textures/empty.png", { -0.5f, -1.0f }, 12, inputFontSize, false, true, { 0.2f, 0.0f });
-    displayObj inputBox2("/Textures/empty.png", { -0.5f, 0.0f }, 13, inputFontSize, false, true, { 0.2f, 0.0f });
-    displayObj inputBox3("/Textures/empty.png", { -0.5f, 1.0f }, 14, inputFontSize, false, true, { 0.2f, 0.0f });
+    displayObj inputBox1("/Textures/empty.png", { -0.5f, -1.0f }, 12, inputFontSize, false, true, { -1.6f, 0.0f });
+    displayObj inputBox2("/Textures/empty.png", { -0.5f, 0.0f }, 13, inputFontSize, false, true, { -1.6f, 0.0f });
+    displayObj inputBox3("/Textures/empty.png", { -0.5f, 1.0f }, 14, inputFontSize, false, true, { -1.6f, 0.0f });
 
     // Mode displays
 
@@ -2121,7 +2121,9 @@ int main()
 
     // Number placeholders
 
-    displayObj numberHolder1("/Textures/add.png", { -0.5f, -1.5f }, 32, simbolFontSize, false, false, {0.5,0}, 4);
+    displayObj numberHolder1("/Textures/inputBox.png", { -0.5f, -1.0f }, 32, simbolFontSize, false, false, { 0.5,0 }, 4);
+    displayObj numberHolder2("/Textures/inputBox.png", { -0.5f, 0.0f }, 37, simbolFontSize, false, false, { 0.5,0 }, 4);
+    displayObj numberHolder3("/Textures/inputBox.png", { -0.5f, 1.0f }, 42, simbolFontSize, false, false, { 0.5,0 }, 4);
    
 
     App app("App", 1400, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),
