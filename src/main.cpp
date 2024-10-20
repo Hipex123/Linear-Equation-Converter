@@ -136,6 +136,9 @@ struct UniformBufferObject
     alignas(4) int firstFuncType;
     alignas(4) int secondFuncType;
     alignas(4) int wasConverted;
+    alignas(4) int firstInputBoxValues[5];
+    alignas(4) int secondInputBoxValues[5];
+    alignas(4) int thirdInputBoxValues[5];
 };
 
 struct convertParams
@@ -217,9 +220,11 @@ std::vector<std::array<glm::vec4, 2>> inputBoxCoords;
 std::array<glm::vec4[2], 20> inputBoxNormCoords;
 
 std::array<bool, 3> isInputBoxSelected = {false, false, false};
-
 std::array<std::string, 3> inputBoxes = { "", "", ""  };
 
+// Evaluator
+
+Evaluator evalu;
 
 class App
 {
@@ -1973,7 +1978,7 @@ private:
 class Evaluator
 {
 public:
-    double eval(const std::string& expression)
+    float eval(const std::string& expression)
     {
         try
         {
@@ -1988,16 +1993,16 @@ public:
     }
 
 private:
-    double parseExpression(std::istringstream& stream)
+    float parseExpression(std::istringstream& stream)
     {
-        double result = parseTerm(stream);
+        float result = parseTerm(stream);
         while (true)
         {
             char op = stream.peek();
             if (op == '+' || op == '-')
             {
                 stream.get();
-                double nextTerm = parseTerm(stream);
+                float nextTerm = parseTerm(stream);
                 result = (op == '+') ? result + nextTerm : result - nextTerm;
             }
             else
@@ -2008,16 +2013,16 @@ private:
         return result;
     }
 
-    double parseTerm(std::istringstream& stream)
+    float parseTerm(std::istringstream& stream)
     {
-        double result = parseFactor(stream);
+        float result = parseFactor(stream);
         while (true)
         {
             char op = stream.peek();
             if (op == '*' || op == '/')
             {
                 stream.get();
-                double nextFactor = parseFactor(stream);
+                float nextFactor = parseFactor(stream);
                 result = (op == '*') ? result * nextFactor : result / nextFactor;
             }
             else
@@ -2028,11 +2033,22 @@ private:
         return result;
     }
 
-    double parseFactor(std::istringstream& stream)
+    float parseFactor(std::istringstream& stream)
     {
-        double result;
+        float result;
         char c = stream.peek();
-        if (std::isdigit(c) || c == '-')
+
+        if (c == '(')
+        {
+            stream.get();
+            result = parseExpression(stream);
+
+            if (stream.get() != ')')
+            {
+                throw std::runtime_error("Mismatched parentheses");
+            }
+        }
+        else if (std::isdigit(c) || c == '-')
         {
             stream >> result;
         }
@@ -2056,6 +2072,7 @@ private:
         return result;
     }
 };
+
 
 int main()
 {
@@ -2166,7 +2183,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        // std::cout << mouseXposNorm << ", " << mouseYposNorm << std::endl;
+        //std::cout << wasConverted << std::endl;
         for (int i = 0; i < numberOfButtons; i++)
         {
             if (mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
@@ -2284,13 +2301,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         }
 
         // Special characters
-
+        //std::cout << key << std::endl;
         for (int i = 0; i < numberOfInputBoxes; i++)
         {
             if (isInputBoxSelected[i])
             {
                 switch (key)
                 {
+                case 79: inputBoxes[i].push_back('('); break;
+                case 80: inputBoxes[i].push_back(')'); break;
                 case 331: inputBoxes[i].push_back('/'); break;
                 case 332: inputBoxes[i].push_back('*'); break;
                 case 333: inputBoxes[i].push_back('-'); break;

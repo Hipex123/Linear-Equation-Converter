@@ -12,6 +12,10 @@ layout(location = 5) flat in int wasConverted;
 
 layout(location = 0) out vec4 outColor;
 
+float firstInputBox[5];
+float secondInputBox[5];
+flaot thirdInputBox[5];
+
 void main() {
     if (id <= 1 && id >= 6){
         outColor = texture(texSamplers[id], fragTexCoord);
@@ -160,7 +164,14 @@ void main() {
     {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
-    else if (id >= 43 && id <= 48 && firstFuncType != 2)
+
+
+    else if (id >= 43 && id <= 48 && firstFuncType != 2 && wasConverted == 0)
+    {
+        outColor = texture(texSamplers[21], fragTexCoord);
+    }
+
+    else if (id >= 43 && id <= 48 && secondFuncType != 2 && wasConverted == 1)
     {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
