@@ -136,9 +136,9 @@ struct UniformBufferObject
     alignas(4) int firstFuncType;
     alignas(4) int secondFuncType;
     alignas(4) int wasConverted;
-    alignas(4) int firstInputBoxValues[5];
-    alignas(4) int secondInputBoxValues[5];
-    alignas(4) int thirdInputBoxValues[5];
+    alignas(16) int firstInputBoxValues[5];
+    alignas(16) int secondInputBoxValues[5];
+    alignas(16) int thirdInputBoxValues[5];
 };
 
 struct convertParams
@@ -151,13 +151,9 @@ struct convertParams
     double c = 1;
 };
 
-std::vector<Vertex> vertices = {
+std::vector<Vertex> vertices = {};
 
-};
-
-std::vector<uint16_t> indices = {
-
-};
+std::vector<uint16_t> indices = {};
 
 // Funciton declerations (non validation layer)
 
@@ -215,16 +211,14 @@ convertParams globalConverts;
 
 // Input box vars
 
-int numberOfInputBoxes;
+int numberOfInputBoxes = 3;
 std::vector<std::array<glm::vec4, 2>> inputBoxCoords;
 std::array<glm::vec4[2], 20> inputBoxNormCoords;
 
-std::array<bool, 3> isInputBoxSelected = {false, false, false};
-std::array<std::string, 3> inputBoxes = { "", "", ""  };
+std::array<bool, 3> isInputBoxSelected = {};
+std::array<std::string, 3> inputBoxes = {};
+std::array<std::array<int, 5>, 3> inputBoxesEvaluated = {};
 
-// Evaluator
-
-Evaluator evalu;
 
 class App
 {
@@ -1504,10 +1498,22 @@ private:
 
         ubo.wasConverted = wasConverted;
 
+
+        memcpy(ubo.firstInputBoxValues, inputBoxesEvaluated[0].data(), 5 * sizeof(int));
+        memcpy(ubo.secondInputBoxValues, inputBoxesEvaluated[1].data(), 5 * sizeof(int));
+        memcpy(ubo.thirdInputBoxValues, inputBoxesEvaluated[2].data(), 5 * sizeof(int));
+
+       
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
 
-        //std::cout<< ubo.secondFuncType << std::endl;
+        /*
+        for (int i = 0; i < 5; i++)
+        {
+            std::cout << ubo.firstInputBoxValues[i];
+        }
+        std::cout << std::endl;
+        */
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
@@ -1992,6 +1998,22 @@ public:
         }
     }
 
+    void sortedEval(float evalP, std::array<int, 5>& buffer)
+    {
+        std::string evalString = std::to_string(evalP);
+        std::string roundedEvalString(evalString.begin(), evalString.begin()+5);
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (roundedEvalString[i] == '.')
+            {
+                buffer[i] = -1;
+                continue;
+            }
+            buffer[i] = roundedEvalString[i] - '0';
+        }
+    }
+
 private:
     float parseExpression(std::istringstream& stream)
     {
@@ -2183,16 +2205,10 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
     if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        //std::cout << wasConverted << std::endl;
         for (int i = 0; i < numberOfButtons; i++)
         {
             if (mouseXposNorm > buttonNormCoords[i][0].x && mouseYposNorm < buttonNormCoords[i][0].y && mouseYposNorm > buttonNormCoords[i][1].y && mouseXposNorm < buttonNormCoords[i][1].x)
             {
-                for (std::string& input : inputBoxes)
-                {
-                    input = "";
-                }
-
                 wasConverted = 0;
 
                 switch (i)
@@ -2218,6 +2234,11 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 case 6:
                     if ((firstFuncType != 0 && secondFuncType != 0) && firstFuncType != secondFuncType)
                     {
+                        Evaluator evalu;
+                        for (int j = 0; j < 3; j++)
+                        {
+                            evalu.sortedEval(evalu.eval(inputBoxes[j]), inputBoxesEvaluated[j]);
+                        }
                         wasConverted = 1;
                     }
                     break;
@@ -2318,7 +2339,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                     Evaluator evalu;
                     std::cout << evalu.eval(inputBoxes[i]) << std::endl;
                     break;
-                case 259: inputBoxes[i].pop_back(); break;
+                case 259: if (inputBoxes[i].length() > 0) { inputBoxes[i].pop_back(); } break;
                 default: break;
                 }
 
