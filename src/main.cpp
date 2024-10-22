@@ -1497,7 +1497,7 @@ private:
         ubo.secondFuncType = secondFuncType;
 
         ubo.wasConverted = wasConverted;
-
+        //inputBoxesEvaluated[0] = { -2,0,0,0,0 };
 
         memcpy(ubo.firstInputBoxValues, inputBoxesEvaluated[0].data(), 5 * sizeof(int));
         memcpy(ubo.secondInputBoxValues, inputBoxesEvaluated[1].data(), 5 * sizeof(int));
@@ -1507,6 +1507,7 @@ private:
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
 
+        //std::cout << ubo.firstInputBoxValues[0] << std::endl;
         /*
         for (int i = 0; i < 5; i++)
         {
@@ -1926,7 +1927,6 @@ public:
         {
             return pcwToImp(globalConverts.m, globalConverts.n);
         }
-
         else
         {
             return {};
@@ -1984,7 +1984,7 @@ private:
 class Evaluator
 {
 public:
-    float eval(const std::string& expression)
+    static float eval(const std::string& expression)
     {
         try
         {
@@ -1998,7 +1998,7 @@ public:
         }
     }
 
-    void sortedEval(float evalP, std::array<int, 5>& buffer)
+    static void sortedEval(float evalP, std::array<int, 5>& buffer)
     {
         std::string evalString = std::to_string(evalP);
         std::string roundedEvalString(evalString.begin(), evalString.begin()+5);
@@ -2010,12 +2010,17 @@ public:
                 buffer[i] = -1;
                 continue;
             }
+            if (roundedEvalString[i] == '-')
+            {
+                buffer[i] = -2;
+                continue;
+            }
             buffer[i] = roundedEvalString[i] - '0';
         }
     }
 
 private:
-    float parseExpression(std::istringstream& stream)
+    static float parseExpression(std::istringstream& stream)
     {
         float result = parseTerm(stream);
         while (true)
@@ -2035,7 +2040,7 @@ private:
         return result;
     }
 
-    float parseTerm(std::istringstream& stream)
+    static float parseTerm(std::istringstream& stream)
     {
         float result = parseFactor(stream);
         while (true)
@@ -2055,7 +2060,7 @@ private:
         return result;
     }
 
-    float parseFactor(std::istringstream& stream)
+    static float parseFactor(std::istringstream& stream)
     {
         float result;
         char c = stream.peek();
@@ -2081,7 +2086,7 @@ private:
         return result;
     }
 
-    std::string removeSpaces(const std::string& str)
+    static std::string removeSpaces(const std::string& str)
     {
         std::string result;
         for (char c : str)
@@ -2234,10 +2239,38 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 case 6:
                     if ((firstFuncType != 0 && secondFuncType != 0) && firstFuncType != secondFuncType)
                     {
-                        Evaluator evalu;
-                        for (int j = 0; j < 3; j++)
+                        switch (firstFuncType)
                         {
-                            evalu.sortedEval(evalu.eval(inputBoxes[j]), inputBoxesEvaluated[j]);
+                        case 1:
+                            globalConverts.k = Evaluator::eval(inputBoxes[0]);
+                            globalConverts.n = Evaluator::eval(inputBoxes[1]);
+                            break;
+                        case 2:
+                            globalConverts.a = Evaluator::eval(inputBoxes[0]);
+                            globalConverts.b = Evaluator::eval(inputBoxes[1]);
+                            globalConverts.c = Evaluator::eval(inputBoxes[2]);
+                            break;
+                        case 3:
+                            globalConverts.m = Evaluator::eval(inputBoxes[0]);
+                            globalConverts.n = Evaluator::eval(inputBoxes[1]);
+                            break;
+                        default:
+                            break;
+                        }
+                        auto result = linearFunctionConverter::convertLinearFunction();
+
+                        if (std::holds_alternative<std::array<double, 2>>(result))
+                        {
+                            const auto& arr = std::get<std::array<double, 2>>(result);
+                            Evaluator::sortedEval(arr[0], inputBoxesEvaluated[0]);
+                            Evaluator::sortedEval(arr[1], inputBoxesEvaluated[1]);
+                        }
+                        else if (std::holds_alternative<std::array<double, 3>>(result))
+                        {
+                            const auto& arr = std::get<std::array<double, 3>>(result);
+                            Evaluator::sortedEval(arr[0], inputBoxesEvaluated[0]);
+                            Evaluator::sortedEval(arr[1], inputBoxesEvaluated[1]);
+                            Evaluator::sortedEval(arr[2], inputBoxesEvaluated[2]);
                         }
                         wasConverted = 1;
                     }
@@ -2272,8 +2305,8 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         //globalConverts.b = 8;
         //globalConverts.c = 1;
 
-        // globalConverts.k = 6;
-        // globalConverts.n = 9;
+        //globalConverts.k = 6;
+        //globalConverts.n = 9;
 
         // globalConverts.m = 3;
         // globalConverts.n = -2;
@@ -2336,8 +2369,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 case 333: inputBoxes[i].push_back('-'); break;
                 case 334: inputBoxes[i].push_back('+'); break;
                 case 257:
-                    Evaluator evalu;
-                    std::cout << evalu.eval(inputBoxes[i]) << std::endl;
+                    std::cout << Evaluator::eval(inputBoxes[i]) << std::endl;
                     break;
                 case 259: if (inputBoxes[i].length() > 0) { inputBoxes[i].pop_back(); } break;
                 default: break;

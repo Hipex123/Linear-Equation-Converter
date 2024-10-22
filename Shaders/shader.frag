@@ -159,10 +159,7 @@ void main() {
         outColor = texture(texSamplers[20], fragTexCoord);
     }
 
-    else if (id >= 33 && id <= 42 && firstFuncType == 0 && inputBoxValues[0][0] == 8)
-    {
-        outColor = texture(texSamplers[26], fragTexCoord);
-    }
+
     else if (id >= 33 && id <= 42 && firstFuncType == 0)
     {
         outColor = texture(texSamplers[21], fragTexCoord);

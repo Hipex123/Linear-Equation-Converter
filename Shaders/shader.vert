@@ -33,7 +33,7 @@ void main() {
     fragTexCoord = inTexCoord;
 
     id = inId;
-
+    
     firstFuncType = ubo.firstFuncType;
     secondFuncType = ubo.secondFuncType;
 
