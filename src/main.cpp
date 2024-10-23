@@ -182,7 +182,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 // Texture rendering vars
 
-constexpr int textureToCreate = 47;
+constexpr int textureToCreate = 59; // Max index + 1
 
 std::array<std::string, textureToCreate> texturePaths;
 
@@ -1497,7 +1497,7 @@ private:
         ubo.secondFuncType = secondFuncType;
 
         ubo.wasConverted = wasConverted;
-        //inputBoxesEvaluated[0] = { -2,0,0,0,0 };
+        //inputBoxesEvaluated[0] = { -2,1,2,3,4 };
 
         memcpy(ubo.firstInputBoxValues, inputBoxesEvaluated[0].data(), 5 * sizeof(int));
         memcpy(ubo.secondInputBoxValues, inputBoxesEvaluated[1].data(), 5 * sizeof(int));
@@ -1507,7 +1507,7 @@ private:
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
 
-        //std::cout << ubo.firstInputBoxValues[0] << std::endl;
+        //std::cout << ubo.firstInputBoxValues[1] << std::endl;
         /*
         for (int i = 0; i < 5; i++)
         {
@@ -2154,20 +2154,35 @@ int main()
 
     // Textures to load
 
-    displayObj load1("/Textures/k.png", { -2.0f, -20.0f }, 24, simbolFontSize);
-    displayObj load2("/Textures/m.png", { -2.0f, -20.0f }, 25, simbolFontSize);
-    displayObj load3("/Textures/n.png", { -2.0f, -20.0f }, 26, simbolFontSize);
-    displayObj load4("/Textures/a.png", { -2.0f, -20.0f }, 27, simbolFontSize);
-    displayObj load5("/Textures/b.png", { -2.0f, -20.0f }, 28, simbolFontSize);
-    displayObj load6("/Textures/c.png", { -2.0f, -20.0f }, 29, simbolFontSize);
-    displayObj load7("/Textures/equ.png", { -2.0f, -20.0f }, 30, simbolFontSize);
-    displayObj load8("/Textures/inputBox.png", { -2.0f, -20.0f }, 31, simbolFontSize);
+    displayObj texLoad1("/Textures/k.png", { -2.0f, -20.0f }, 24, simbolFontSize);
+    displayObj texLoad2("/Textures/m.png", { -2.0f, -20.0f }, 25, simbolFontSize);
+    displayObj texLoad3("/Textures/n.png", { -2.0f, -20.0f }, 26, simbolFontSize);
+    displayObj texLoad4("/Textures/a.png", { -2.0f, -20.0f }, 27, simbolFontSize);
+    displayObj texLoad5("/Textures/b.png", { -2.0f, -20.0f }, 28, simbolFontSize);
+    displayObj texLoad6("/Textures/c.png", { -2.0f, -20.0f }, 29, simbolFontSize);
+    displayObj texLoad7("/Textures/equ.png", { -2.0f, -20.0f }, 30, simbolFontSize);
+    displayObj texLoad8("/Textures/inputBox.png", { -2.0f, -20.0f }, 31, simbolFontSize);
 
     // Number placeholders
 
     displayObj numberHolder1("/Textures/inputBox.png", { -0.5f, -1.0f }, 32, simbolFontSize, false, false, { 0.5,0 }, 4);
     displayObj numberHolder2("/Textures/inputBox.png", { -0.5f, 0.0f }, 37, simbolFontSize, false, false, { 0.5,0 }, 4);
     displayObj numberHolder3("/Textures/inputBox.png", { -0.5f, 1.0f }, 42, simbolFontSize, false, false, { 0.5,0 }, 4);
+
+    // Number Loaders
+
+    displayObj numLoad1("/Textures/sub.png", { -2.0f, -20.0f }, 47, simbolFontSize);
+    displayObj numLoad2("/Textures/dot.png", { -2.0f, -20.0f }, 48, simbolFontSize);
+    displayObj numLoad3("/Textures/zero.png", { -2.0f, -20.0f }, 49, simbolFontSize);
+    displayObj numLoad4("/Textures/one.png", { -2.0f, -20.0f }, 50, simbolFontSize);
+    displayObj numLoad5("/Textures/two.png", { -2.0f, -20.0f }, 51, simbolFontSize);
+    displayObj numLoad6("/Textures/three.png", { -2.0f, -20.0f }, 52, simbolFontSize);
+    displayObj numLoad7("/Textures/four.png", { -2.0f, -20.0f }, 53, simbolFontSize);
+    displayObj numLoad8("/Textures/five.png", { -2.0f, -20.0f }, 54, simbolFontSize);
+    displayObj numLoad9("/Textures/six.png", { -2.0f, -20.0f }, 55, simbolFontSize);
+    displayObj numLoad10("/Textures/seven.png", { -2.0f, -20.0f }, 56, simbolFontSize);
+    displayObj numLoad11("/Textures/eight.png", { -2.0f, -20.0f }, 57, simbolFontSize);
+    displayObj numLoad12("/Textures/nine.png", { -2.0f, -20.0f }, 58, simbolFontSize);
    
 
     App app("App", 1400, 500, 0, 1, glm::vec3(0.0f, 0.0f, 0.0f),

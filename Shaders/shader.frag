@@ -1,6 +1,6 @@
 #version 450
 
-layout(binding = 1) uniform sampler2D texSamplers[50];
+layout(binding = 1) uniform sampler2D texSamplers[62];
 
 
 layout(location = 0) in vec3 fragColor;
@@ -17,6 +17,9 @@ layout(location = 0) out vec4 outColor;
 
 
 void main() {
+
+    int numbersIds[12] = {47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58};
+
     if (id <= 1 && id >= 6){
         outColor = texture(texSamplers[id], fragTexCoord);
     }
@@ -175,6 +178,7 @@ void main() {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
 
+    
 
     else
     {
