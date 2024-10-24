@@ -7,9 +7,7 @@ layout(binding = 0) uniform UniformBufferObject {
     int firstFuncType;
     int secondFuncType;
     int wasConverted;
-    int inputBoxValues1[5];
-    int inputBoxValues2[5];
-    int inputBoxValues3[5];
+    vec4 inputBoxesValues[3][2];
 } ubo;
 
 layout(location = 0) in vec2 inPosition;
@@ -24,7 +22,7 @@ layout(location = 2) flat out int id;
 layout(location = 3) flat out int firstFuncType;
 layout(location = 4) flat out int secondFuncType;
 layout(location = 5) flat out int wasConverted;
-layout(location = 6) flat out int inputBoxValues[3][5];
+layout(location = 6) out vec4 inputBoxValues[3][2];
 
 
 void main() {
@@ -39,10 +37,13 @@ void main() {
 
     wasConverted = ubo.wasConverted;
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 3; i++)
     {
-            inputBoxValues[0][i] = ubo.inputBoxValues1[i];
-            inputBoxValues[1][i] = ubo.inputBoxValues2[i];
-            inputBoxValues[2][i] = ubo.inputBoxValues3[i];
+        inputBoxValues[i][0].x = ubo.inputBoxesValues[i][0].x;
+        inputBoxValues[i][0].y = ubo.inputBoxesValues[i][0].y;
+        inputBoxValues[i][0].z = ubo.inputBoxesValues[i][0].z;
+        inputBoxValues[i][0].w = ubo.inputBoxesValues[i][0].w;
+
+        inputBoxValues[i][1].w = ubo.inputBoxesValues[i][1].w;
     }
 }

@@ -9,7 +9,7 @@ layout(location = 2) flat in int id;
 layout(location = 3) flat in int firstFuncType;
 layout(location = 4) flat in int secondFuncType;
 layout(location = 5) flat in int wasConverted;
-layout(location = 6) flat in int inputBoxValues[3][5];
+layout(location = 6) in vec4 inputBoxValues[3][2];
 
 
 layout(location = 0) out vec4 outColor;

@@ -136,9 +136,7 @@ struct UniformBufferObject
     alignas(4) int firstFuncType;
     alignas(4) int secondFuncType;
     alignas(4) int wasConverted;
-    alignas(16) int firstInputBoxValues[5];
-    alignas(16) int secondInputBoxValues[5];
-    alignas(16) int thirdInputBoxValues[5];
+    alignas(16) glm::vec4 inputBoxesValues[3][2];
 };
 
 struct convertParams
@@ -158,7 +156,6 @@ std::vector<uint16_t> indices = {};
 // Funciton declerations (non validation layer)
 
 std::string findResourcePath(std::string pathP);
-void initializeKeys();
 
 // Mouse vars
 
@@ -1497,24 +1494,20 @@ private:
         ubo.secondFuncType = secondFuncType;
 
         ubo.wasConverted = wasConverted;
-        //inputBoxesEvaluated[0] = { -2,1,2,3,4 };
 
-        memcpy(ubo.firstInputBoxValues, inputBoxesEvaluated[0].data(), 5 * sizeof(int));
-        memcpy(ubo.secondInputBoxValues, inputBoxesEvaluated[1].data(), 5 * sizeof(int));
-        memcpy(ubo.thirdInputBoxValues, inputBoxesEvaluated[2].data(), 5 * sizeof(int));
+        for (int i = 0; i < numberOfInputBoxes; i++)
+        {
+            ubo.inputBoxesValues[i][0].x = inputBoxesEvaluated[i][0];
+            ubo.inputBoxesValues[i][0].y = inputBoxesEvaluated[i][1];
+            ubo.inputBoxesValues[i][0].z = inputBoxesEvaluated[i][2];
+            ubo.inputBoxesValues[i][0].w = inputBoxesEvaluated[i][3];
+
+            ubo.inputBoxesValues[i][1].w = inputBoxesEvaluated[i][4];
+        }
 
        
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
-
-        //std::cout << ubo.firstInputBoxValues[1] << std::endl;
-        /*
-        for (int i = 0; i < 5; i++)
-        {
-            std::cout << ubo.firstInputBoxValues[i];
-        }
-        std::cout << std::endl;
-        */
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
