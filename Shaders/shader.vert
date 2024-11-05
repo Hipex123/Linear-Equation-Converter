@@ -22,7 +22,7 @@ layout(location = 2) flat out int id;
 layout(location = 3) flat out int firstFuncType;
 layout(location = 4) flat out int secondFuncType;
 layout(location = 5) flat out int wasConverted;
-layout(location = 6) out vec4 inputBoxValues[3][2];
+layout(location = 6) flat out vec4 inputBoxValues[3][2];
 
 
 void main() {

@@ -153,10 +153,6 @@ std::vector<Vertex> vertices = {};
 
 std::vector<uint16_t> indices = {};
 
-// Funciton declerations (non validation layer)
-
-std::string findResourcePath(std::string pathP);
-
 // Mouse vars
 
 float mouseXpos, mouseYpos;
@@ -487,7 +483,7 @@ private:
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Linear Funciton Converter";
+        appInfo.pApplicationName = "Linear Function Converter";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -787,8 +783,8 @@ private:
 
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile(findResourcePath("/Shaders/vert.spv"));
-        auto fragShaderCode = readFile(findResourcePath("/Shaders/frag.spv"));
+        auto vertShaderCode = readFile("../../Shaders/vert.spv");
+        auto fragShaderCode = readFile("../../Shaders/frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -945,7 +941,7 @@ private:
     {
         int texWidth, texHeight, texChannels;
 
-        std::string finalPath = findResourcePath(texturePath);
+        std::string finalPath = "../.." + texturePath;
 
         stbi_uc *pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -1993,8 +1989,24 @@ public:
 
     static void sortedEval(float evalP, std::array<int, 5>& buffer)
     {
+        uint8_t dotIndexMinus{};
+        std::string tempEvalString = std::to_string(evalP);
+        std::string tempString(tempEvalString.begin(), tempEvalString.end());
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (tempString[i] == '.')
+            {
+                dotIndexMinus = 4 - i;
+                break;
+            }
+        }
+
+        evalP = std::round(evalP * std::pow(10, dotIndexMinus)) / 100;
+
+        //evalP = (int)(evalP * 100)    -0.125   res=4-i     10**res
         std::string evalString = std::to_string(evalP);
-        std::string roundedEvalString(evalString.begin(), evalString.begin()+5);
+        std::string roundedEvalString(evalString.begin(), evalString.end());
 
         for (int i = 0; i < 5; i++)
         {
@@ -2008,7 +2020,7 @@ public:
                 buffer[i] = -2;
                 continue;
             }
-            buffer[i] = roundedEvalString[i] - '0';
+            buffer[i] = roundedEvalString[i] - '0'; // convert char to int
         }
     }
 
@@ -2194,16 +2206,6 @@ int main()
     return EXIT_SUCCESS;
 }
 
-std::string findResourcePath(std::string pathP)
-{
-    std::filesystem::path srcPath = __FILE__;
-    std::filesystem::path absPath = std::filesystem::absolute(srcPath);
-    std::filesystem::path grantParentPath = absPath.parent_path().parent_path();
-    std::string strPath = grantParentPath.string();
-    std::replace(strPath.begin(), strPath.end(), '\\', '/');
-    return strPath + pathP;
-}
-
 void cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
 {
     mouseXpos = xpos;
@@ -2307,36 +2309,6 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         prevMouseButtonState = GLFW_PRESS;
     }
 
-    if (prevMouseButtonState == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    {
-        //globalConverts.a = 10;
-        //globalConverts.b = 8;
-        //globalConverts.c = 1;
-
-        //globalConverts.k = 6;
-        //globalConverts.n = 9;
-
-        // globalConverts.m = 3;
-        // globalConverts.n = -2;
-
-        auto result = linearFunctionConverter::convertLinearFunction();
-
-        if (std::holds_alternative<std::array<double, 2>>(result))
-        {
-            const auto &arr = std::get<std::array<double, 2>>(result);
-            std::cout << arr[0] << ", " << arr[1] << std::endl
-                      << std::endl;
-        }
-        else if (std::holds_alternative<std::array<double, 3>>(result))
-        {
-            const auto &arr = std::get<std::array<double, 3>>(result);
-            std::cout << arr[0] << ", " << arr[1] << ", " << arr[2] << std::endl
-                      << std::endl;
-        }
-
-        prevMouseButtonState = GLFW_PRESS;
-    }
-
     if ((button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT) && action == GLFW_RELEASE)
     {
         prevMouseButtonState = GLFW_RELEASE;
@@ -2356,14 +2328,11 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 if (isInputBoxSelected[i])
                 {
                     inputBoxes[i].push_back((char)key);
-                    std::cout << inputBoxes[i] << "\n";
                     break;
                 }
             }
         }
 
-        // Special characters
-        //std::cout << key << std::endl;
         for (int i = 0; i < numberOfInputBoxes; i++)
         {
             if (isInputBoxSelected[i])
@@ -2376,9 +2345,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
                 case 332: inputBoxes[i].push_back('*'); break;
                 case 333: inputBoxes[i].push_back('-'); break;
                 case 334: inputBoxes[i].push_back('+'); break;
-                case 257:
-                    std::cout << Evaluator::eval(inputBoxes[i]) << std::endl;
-                    break;
                 case 259: if (inputBoxes[i].length() > 0) { inputBoxes[i].pop_back(); } break;
                 default: break;
                 }

@@ -9,7 +9,7 @@ layout(location = 2) flat in int id;
 layout(location = 3) flat in int firstFuncType;
 layout(location = 4) flat in int secondFuncType;
 layout(location = 5) flat in int wasConverted;
-layout(location = 6) in vec4 inputBoxValues[3][2];
+layout(location = 6) flat in vec4 inputBoxValues[3][2];
 
 
 layout(location = 0) out vec4 outColor;
@@ -17,8 +17,14 @@ layout(location = 0) out vec4 outColor;
 
 
 void main() {
-
     int numbersIds[12] = {47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58};
+
+    int idList[15] = {33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
+    float inputValuesList[15] = {
+    inputBoxValues[0][0].x, inputBoxValues[0][0].y, inputBoxValues[0][0].z, inputBoxValues[0][0].w, inputBoxValues[0][1].w,
+    inputBoxValues[1][0].x, inputBoxValues[1][0].y, inputBoxValues[1][0].z, inputBoxValues[1][0].w, inputBoxValues[1][1].w,
+    inputBoxValues[2][0].x, inputBoxValues[2][0].y, inputBoxValues[2][0].z, inputBoxValues[2][0].w, inputBoxValues[2][1].w
+    };
 
     if (id <= 1 && id >= 6){
         outColor = texture(texSamplers[id], fragTexCoord);
@@ -163,22 +169,47 @@ void main() {
     }
 
 
+    else if (id >= 33 && id <= 42 && wasConverted == 1 && firstFuncType != 0)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            if (id == idList[i])
+            {
+                int correctId = numbersIds[int(inputValuesList[i]) + 2];
+
+                outColor = texture(texSamplers[correctId], fragTexCoord);
+            }
+        }
+    }
+
+    else if (id >= 43 && id <= 47 && wasConverted == 1 && secondFuncType == 2)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (id == idList[i])
+            {
+                int correctId = numbersIds[int(inputValuesList[i]) + 2];
+
+                outColor = texture(texSamplers[correctId], fragTexCoord);
+            }
+        }
+    }
+
+
     else if (id >= 33 && id <= 42 && firstFuncType == 0)
     {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
 
-    else if (id >= 43 && id <= 48 && firstFuncType != 2 && wasConverted == 0)
+    else if (id >= 43 && id <= 47 && firstFuncType != 2 && wasConverted == 0)
     {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
 
-    else if (id >= 43 && id <= 48 && secondFuncType != 2 && wasConverted == 1)
+    else if (id >= 43 && id <= 47 && secondFuncType != 2 && wasConverted == 1)
     {
         outColor = texture(texSamplers[21], fragTexCoord);
     }
-
-    
 
     else
     {
