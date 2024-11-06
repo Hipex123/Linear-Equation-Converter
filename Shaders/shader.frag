@@ -184,7 +184,7 @@ void main() {
 
     else if (id >= 43 && id <= 47 && wasConverted == 1 && secondFuncType == 2)
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 10; i < 15; i++)
         {
             if (id == idList[i])
             {

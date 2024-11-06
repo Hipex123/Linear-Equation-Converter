@@ -783,8 +783,8 @@ private:
 
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile("../../Shaders/vert.spv");
-        auto fragShaderCode = readFile("../../Shaders/frag.spv");
+        auto vertShaderCode = readFile("../Shaders/vert.spv");
+        auto fragShaderCode = readFile("../Shaders/frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -941,7 +941,7 @@ private:
     {
         int texWidth, texHeight, texChannels;
 
-        std::string finalPath = "../.." + texturePath;
+        std::string finalPath = ".." + texturePath;
 
         stbi_uc *pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -2002,9 +2002,8 @@ public:
             }
         }
 
-        evalP = std::round(evalP * std::pow(10, dotIndexMinus)) / 100;
+        evalP = std::round(evalP * std::pow(10, dotIndexMinus)) / std::pow(10, dotIndexMinus);
 
-        //evalP = (int)(evalP * 100)    -0.125   res=4-i     10**res
         std::string evalString = std::to_string(evalP);
         std::string roundedEvalString(evalString.begin(), evalString.end());
 
@@ -2247,7 +2246,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                     secondFuncType = 3;
                     break;
                 case 6:
-                    if ((firstFuncType != 0 && secondFuncType != 0) && firstFuncType != secondFuncType)
+                    if ((firstFuncType != 0 && secondFuncType != 0) && firstFuncType != secondFuncType && !inputBoxes[0].empty() && !inputBoxes[1].empty())
                     {
                         switch (firstFuncType)
                         {
@@ -2274,6 +2273,10 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                             const auto& arr = std::get<std::array<double, 2>>(result);
                             Evaluator::sortedEval(arr[0], inputBoxesEvaluated[0]);
                             Evaluator::sortedEval(arr[1], inputBoxesEvaluated[1]);
+                            std::cout << arr[0] << std::endl;
+                            std::cout << arr[1] << std::endl;
+                            std::cout << "------------------" << std::endl;
+
                         }
                         else if (std::holds_alternative<std::array<double, 3>>(result))
                         {
@@ -2281,7 +2284,13 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                             Evaluator::sortedEval(arr[0], inputBoxesEvaluated[0]);
                             Evaluator::sortedEval(arr[1], inputBoxesEvaluated[1]);
                             Evaluator::sortedEval(arr[2], inputBoxesEvaluated[2]);
+                            std::cout << arr[0] << std::endl;
+                            std::cout << arr[1] << std::endl;
+                            std::cout << arr[2] << std::endl;
+                            std::cout << "------------------" << std::endl;
                         }
+
+                        std::fill(inputBoxes.begin(), inputBoxes.end(), "");
                         wasConverted = 1;
                     }
                     break;
