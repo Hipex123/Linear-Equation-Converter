@@ -483,7 +483,7 @@ private:
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Linear Function Converter";
+        appInfo.pApplicationName = "Linear Equation Converter";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -1885,10 +1885,10 @@ public:
     }
 };
 
-class linearFunctionConverter
+class linearEquationConverter
 {
 public:
-    static std::variant<std::array<double, 2>, std::array<double, 3>> convertLinearFunction()
+    static std::variant<std::array<double, 2>, std::array<double, 3>> convertLinearEquation()
     {
         if (firstFuncType == 1 && secondFuncType == 2)
         {
@@ -2266,7 +2266,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                         default:
                             break;
                         }
-                        auto result = linearFunctionConverter::convertLinearFunction();
+                        auto result = linearEquationConverter::convertLinearEquation();
 
                         if (std::holds_alternative<std::array<double, 2>>(result))
                         {
