@@ -213,6 +213,8 @@ std::array<std::string, 3> inputBoxes = {};
 std::array<std::array<int, 5>, 3> inputBoxesEvaluated = {};
 
 
+//int frameCount{};
+
 class App
 {
 public:
@@ -357,6 +359,8 @@ private:
 
     void mainLoop()
     {
+        //auto start = std::chrono::high_resolution_clock::now();
+
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
@@ -379,6 +383,18 @@ private:
                     inputBoxNormCoords[i][j] /= inputBoxNormCoords[i][j].w;
                 }
             }
+            /*
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+
+            if (duration.count() == 1)
+            {
+                std::cout << frameCount << std::endl;
+                frameCount = 0;
+                start = std::chrono::high_resolution_clock::now();
+            }
+            frameCount++;
+            */
         }
 
         vkDeviceWaitIdle(device);
@@ -1208,7 +1224,7 @@ private:
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        poolSizes[1].descriptorCount = static_cast<uint32_t>(textureToCreate + MAX_FRAMES_IN_FLIGHT);
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
