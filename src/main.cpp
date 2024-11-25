@@ -26,6 +26,8 @@
 #include <cctype>
 #include <sstream>
 
+#include "Libs/Includes/evaluator.hpp"
+#include "Libs/Includes/linearEquationConverter.hpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -139,16 +141,6 @@ struct UniformBufferObject
     alignas(16) glm::vec4 inputBoxesValues[3][2];
 };
 
-struct convertParams
-{
-    double k = 1;
-    double m = 1;
-    double n = 1;
-    double a = 1;
-    double b = 1;
-    double c = 1;
-};
-
 std::vector<Vertex> vertices = {};
 
 std::vector<uint16_t> indices = {};
@@ -218,7 +210,7 @@ std::array<std::array<int, 5>, 3> inputBoxesEvaluated = {};
 class App
 {
 public:
-    const char *title;
+    const char* title;
     int width;
     int height;
 
@@ -233,7 +225,7 @@ public:
     float nearClippingPlane;
     float farClippingPlane;
 
-    App(const char *titleP = "App", int widthP = 500, int heightP = 500, int animTimeAccelerationP = 0, int animSpeedP = 1,
+    App(const char* titleP = "App", int widthP = 500, int heightP = 500, int animTimeAccelerationP = 0, int animSpeedP = 1,
         glm::vec3 modelPositionP = glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3 camPositionP = glm::vec3(2.0f, 2.0f, 2.0f),
         glm::vec3 camLookCordsP = glm::vec3(0.0f, 0.0f, 0.0f), float FOVp = 45.0f, float nearClippingPlaneP = 0.1f,
         float farClippingPlaneP = 30.0f)
@@ -260,7 +252,7 @@ public:
     }
 
 private:
-    GLFWwindow *window;
+    GLFWwindow* window;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -293,7 +285,7 @@ private:
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void *> uniformBuffersMapped;
+    std::vector<void*> uniformBuffersMapped;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -321,9 +313,9 @@ private:
         glfwSetKeyCallback(window, keyCallback);
     }
 
-    static void framebufferResizeCallback(GLFWwindow *window, int width, int height)
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     {
-        auto app = reinterpret_cast<App *>(glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
 
@@ -520,7 +512,7 @@ private:
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
             populateDebugMessengerCreateInfo(debugCreateInfo);
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
+            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
         }
         else
         {
@@ -535,7 +527,7 @@ private:
         }
     }
 
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
     {
         createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -579,7 +571,7 @@ private:
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-        for (const auto &device : devices)
+        for (const auto& device : devices)
         {
             if (isDeviceSuitable(device))
             {
@@ -599,7 +591,7 @@ private:
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+        std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -671,7 +663,7 @@ private:
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-        uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+        uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
         if (indices.graphicsFamily != indices.presentFamily)
         {
@@ -779,7 +771,7 @@ private:
             samplerLayoutBindings.push_back(samplerLayoutBinding);
         }
 
-        std::array<VkDescriptorSetLayoutBinding, textureToCreate + 1> bindings = {uboLayoutBinding};
+        std::array<VkDescriptorSetLayoutBinding, textureToCreate + 1> bindings = { uboLayoutBinding };
 
         for (int i = 0; i < textureToCreate; i++)
         {
@@ -817,7 +809,7 @@ private:
         fragShaderStageInfo.module = fragShaderModule;
         fragShaderStageInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -872,7 +864,7 @@ private:
 
         std::vector<VkDynamicState> dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR};
+            VK_DYNAMIC_STATE_SCISSOR };
         VkPipelineDynamicStateCreateInfo dynamicState{};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -920,7 +912,7 @@ private:
         for (size_t i = 0; i < swapChainImageViews.size(); i++)
         {
             VkImageView attachments[] = {
-                swapChainImageViews[i]};
+                swapChainImageViews[i] };
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -953,13 +945,13 @@ private:
         }
     }
 
-    void createTextureImage(const std::string &texturePath, VkImage &textureImage, VkDeviceMemory &textureImageMemory)
+    void createTextureImage(const std::string& texturePath, VkImage& textureImage, VkDeviceMemory& textureImageMemory)
     {
         int texWidth, texHeight, texChannels;
 
         std::string finalPath = ".." + texturePath;
 
-        stbi_uc *pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load(finalPath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels)
@@ -971,7 +963,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void *data;
+        void* data;
         vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, pixels, static_cast<size_t>(imageSize));
         vkUnmapMemory(device, stagingBufferMemory);
@@ -1047,7 +1039,7 @@ private:
         return imageView;
     }
 
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory)
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
     {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1149,11 +1141,11 @@ private:
         region.imageSubresource.mipLevel = 0;
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
-        region.imageOffset = {0, 0, 0};
+        region.imageOffset = { 0, 0, 0 };
         region.imageExtent = {
             width,
             height,
-            1};
+            1 };
 
         vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -1168,7 +1160,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void *data;
+        void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
@@ -1189,7 +1181,7 @@ private:
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-        void *data;
+        void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, indices.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
@@ -1296,7 +1288,7 @@ private:
         }
     }
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory)
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1417,10 +1409,10 @@ private:
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderPass;
         renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
-        renderPassInfo.renderArea.offset = {0, 0};
+        renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = swapChainExtent;
 
-        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
@@ -1438,12 +1430,12 @@ private:
         vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
         VkRect2D scissor{};
-        scissor.offset = {0, 0};
+        scissor.offset = { 0, 0 };
         scissor.extent = swapChainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        VkBuffer vertexBuffers[] = {vertexBuffer};
-        VkDeviceSize offsets[] = {0};
+        VkBuffer vertexBuffers[] = { vertexBuffer };
+        VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
@@ -1517,7 +1509,7 @@ private:
             ubo.inputBoxesValues[i][1].w = inputBoxesEvaluated[i][4];
         }
 
-       
+
         uniformBufferProj = ubo.proj;
         uniformBufferView = ubo.view;
 
@@ -1551,8 +1543,8 @@ private:
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
@@ -1560,7 +1552,7 @@ private:
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+        VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -1575,7 +1567,7 @@ private:
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
 
-        VkSwapchainKHR swapChains[] = {swapChain};
+        VkSwapchainKHR swapChains[] = { swapChain };
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
 
@@ -1596,12 +1588,12 @@ private:
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    VkShaderModule createShaderModule(const std::vector<char> &code)
+    VkShaderModule createShaderModule(const std::vector<char>& code)
     {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
+        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
         VkShaderModule shaderModule;
         if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
@@ -1612,9 +1604,9 @@ private:
         return shaderModule;
     }
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
     {
-        for (const auto &availableFormat : availableFormats)
+        for (const auto& availableFormat : availableFormats)
         {
             if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
             {
@@ -1625,12 +1617,12 @@ private:
         return availableFormats[0];
     }
 
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes)
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
     {
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
         {
@@ -1643,7 +1635,7 @@ private:
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height)};
+                static_cast<uint32_t>(height) };
 
             actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
             actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -1708,7 +1700,7 @@ private:
 
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
-        for (const auto &extension : availableExtensions)
+        for (const auto& extension : availableExtensions)
         {
             requiredExtensions.erase(extension.extensionName);
         }
@@ -1727,7 +1719,7 @@ private:
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
         int i = 0;
-        for (const auto &queueFamily : queueFamilies)
+        for (const auto& queueFamily : queueFamilies)
         {
             if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
@@ -1753,13 +1745,13 @@ private:
         return indices;
     }
 
-    std::vector<const char *> getRequiredExtensions()
+    std::vector<const char*> getRequiredExtensions()
     {
         uint32_t glfwExtensionCount = 0;
-        const char **glfwExtensions;
+        const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-        std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
         if (enableValidationLayers)
         {
@@ -1777,11 +1769,11 @@ private:
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-        for (const char *layerName : validationLayers)
+        for (const char* layerName : validationLayers)
         {
             bool layerFound = false;
 
-            for (const auto &layerProperties : availableLayers)
+            for (const auto& layerProperties : availableLayers)
             {
                 if (strcmp(layerName, layerProperties.layerName) == 0)
                 {
@@ -1799,7 +1791,7 @@ private:
         return true;
     }
 
-    static std::vector<char> readFile(const std::string &filename)
+    static std::vector<char> readFile(const std::string& filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -1819,7 +1811,7 @@ private:
         return buffer;
     }
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData)
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
     {
         std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
@@ -1836,14 +1828,14 @@ public:
     displayObj(const char* texturePathP, std::array<float, 2> posP, int textureIndex, float fontSize, bool isButton = false, bool isInputBox = false
         , std::array<float, 2> posSub = { 0, 0 }, int decimalPlaces = 0)
     {
-        for (int i = 0; i < decimalPlaces+1; i++)
+        for (int i = 0; i < decimalPlaces + 1; i++)
         {
             float firstPosAdder = 1.25f * fontSize;
             float secondPosAdder = 0.5f * fontSize;
 
-            texturePaths[textureIndex+i] = texturePathP;
+            texturePaths[textureIndex + i] = texturePathP;
 
-            pos[0] = posP[0]-(i/1.9);
+            pos[0] = posP[0] - (i / 1.9);
             pos[1] = posP[1];
 
             posSub[0] = posSub[0];
@@ -1900,226 +1892,6 @@ public:
         }
     }
 };
-
-class linearEquationConverter
-{
-public:
-    static std::variant<std::array<double, 2>, std::array<double, 3>> convertLinearEquation()
-    {
-        if (firstFuncType == 1 && secondFuncType == 2)
-        {
-            return expToImp(globalConverts.k, globalConverts.n);
-        }
-        else if (firstFuncType == 1 && secondFuncType == 3)
-        {
-            return expToPcw(globalConverts.k, globalConverts.n);
-        }
-
-        else if (firstFuncType == 2 && secondFuncType == 1)
-        {
-            return impToExp(globalConverts.a, globalConverts.b, globalConverts.c);
-        }
-        else if (firstFuncType == 2 && secondFuncType == 3)
-        {
-            return impToPcw(globalConverts.a, globalConverts.b, globalConverts.c);
-        }
-
-        else if (firstFuncType == 3 && secondFuncType == 1)
-        {
-            return pcwToExp(globalConverts.m, globalConverts.n);
-        }
-        else if (firstFuncType == 3 && secondFuncType == 2)
-        {
-            return pcwToImp(globalConverts.m, globalConverts.n);
-        }
-        else
-        {
-            return {};
-        }
-    }
-
-private:
-    static std::array<double, 3> expToImp(double k, double n)
-    {
-        return {-k, 1, -n};
-    }
-
-    static std::array<double, 2> expToPcw(double k, double n)
-    {
-        return {n / (-k), n};
-    }
-
-    static std::array<double, 2> impToExp(double a, double b, double c)
-    {
-        return {-(a / b), -(c / b)};
-    }
-
-    static std::array<double, 2> impToPcw(double a, double b, double c)
-    {
-        return {-(c / a), -(c / b)};
-    }
-
-    static std::array<double, 2> pcwToExp(double m, double n)
-    {
-        return {-((lcm(m, n) / m) / (lcm(m, n) / n)), lcm(m, n) / (lcm(m, n) / n)};
-    }
-
-    static std::array<double, 3> pcwToImp(double m, double n)
-    {
-        return {lcm(m, n) / m, lcm(m, n) / n, -lcm(m, n)};
-    }
-
-    static double gcd(double a, double b)
-    {
-        while (b != 0)
-        {
-            int temp = b;
-            b = std::fmod(a, b);
-            a = temp;
-        }
-        return a;
-    }
-
-    static double lcm(double a, double b)
-    {
-        return std::abs(a * b) / gcd(a, b);
-    }
-};
-
-class Evaluator
-{
-public:
-    static float eval(const std::string& expression)
-    {
-        try
-        {
-            std::string cleanedExpression = removeSpaces(expression);
-            std::istringstream stream(cleanedExpression);
-            return parseExpression(stream);
-        }
-        catch (const std::exception&)
-        {
-            return 0;
-        }
-    }
-
-    static void sortedEval(float evalP, std::array<int, 5>& buffer)
-    {
-        uint8_t dotIndexMinus{};
-        std::string tempEvalString = std::to_string(evalP);
-        std::string tempString(tempEvalString.begin(), tempEvalString.end());
-
-        for (int i = 0; i < 5; i++)
-        {
-            if (tempString[i] == '.')
-            {
-                dotIndexMinus = 4 - i;
-                break;
-            }
-        }
-
-        evalP = std::round(evalP * std::pow(10, dotIndexMinus)) / std::pow(10, dotIndexMinus);
-
-        std::string evalString = std::to_string(evalP);
-        std::string roundedEvalString(evalString.begin(), evalString.end());
-
-        for (int i = 0; i < 5; i++)
-        {
-            if (roundedEvalString[i] == '.')
-            {
-                buffer[i] = -1;
-                continue;
-            }
-            if (roundedEvalString[i] == '-')
-            {
-                buffer[i] = -2;
-                continue;
-            }
-            buffer[i] = roundedEvalString[i] - '0'; // convert char to int
-        }
-    }
-
-private:
-    static float parseExpression(std::istringstream& stream)
-    {
-        float result = parseTerm(stream);
-        while (true)
-        {
-            char op = stream.peek();
-            if (op == '+' || op == '-')
-            {
-                stream.get();
-                float nextTerm = parseTerm(stream);
-                result = (op == '+') ? result + nextTerm : result - nextTerm;
-            }
-            else
-            {
-                break;
-            }
-        }
-        return result;
-    }
-
-    static float parseTerm(std::istringstream& stream)
-    {
-        float result = parseFactor(stream);
-        while (true)
-        {
-            char op = stream.peek();
-            if (op == '*' || op == '/')
-            {
-                stream.get();
-                float nextFactor = parseFactor(stream);
-                result = (op == '*') ? result * nextFactor : result / nextFactor;
-            }
-            else
-            {
-                break;
-            }
-        }
-        return result;
-    }
-
-    static float parseFactor(std::istringstream& stream)
-    {
-        float result;
-        char c = stream.peek();
-
-        if (c == '(')
-        {
-            stream.get();
-            result = parseExpression(stream);
-
-            if (stream.get() != ')')
-            {
-                throw std::runtime_error("Mismatched parentheses");
-            }
-        }
-        else if (std::isdigit(c) || c == '-')
-        {
-            stream >> result;
-        }
-        else
-        {
-            throw std::runtime_error("Invalid expression");
-        }
-        return result;
-    }
-
-    static std::string removeSpaces(const std::string& str)
-    {
-        std::string result;
-        for (char c : str)
-        {
-            if (!std::isspace(c))
-            {
-                result += c;
-            }
-        }
-        return result;
-    }
-};
-
 
 int main()
 {
@@ -2282,7 +2054,7 @@ void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                         default:
                             break;
                         }
-                        auto result = linearEquationConverter::convertLinearEquation();
+                        auto result = linearEquationConverter::convertLinearEquation(firstFuncType, secondFuncType, globalConverts);
 
                         if (std::holds_alternative<std::array<double, 2>>(result))
                         {
